@@ -4,15 +4,7 @@ import DomainCrawler from 'crawler'
 
 import linkListToDomains from './utils/linkListToDomains'
 
-const after = (result) => {
-  if (result && result.constructor === Promise) {
-    return result
-  } else {
-    return new Promise(function (resolve) {
-      resolve(result)
-    })
-  }
-}
+const supportedProtocolRegex = /^https?:\/\//
 
 export default class Crawler {
   constructor ({ name, connectionsPerDomain = 10, throttlePerDomain = 10, logger = console }) {
@@ -25,6 +17,11 @@ export default class Crawler {
     this.domainCrawlers = {}
     this.urlsToCrawl = []
     this.crawledLinks = {}
+
+    this.interface = {
+      queueLinks: this.queueUrls.bind(this),
+      postResults: this.storeResult.bind(this)
+    }
   }
 
   crawl (urls, app) {
@@ -42,6 +39,19 @@ export default class Crawler {
     })
   }
 
+  removeUnsupportedUrls (urls) {
+    return urls.filter(url => {
+      const isSupported = supportedProtocolRegex.test(url)
+      if (!isSupported) {
+        this.crawledLinks[url] = {
+          rejected: 'protocol not supported',
+          protocol: url.split('/')[0]
+        }
+      }
+      return isSupported
+    })
+  }
+
   report () {
     return {
       crawledUrls: this.crawledLinks,
@@ -49,8 +59,13 @@ export default class Crawler {
     }
   }
 
+  storeResult (url, data) {
+    this.crawledLinks[url] = data
+  }
+
   queueUrls (urls) {
     urls = this.removeCrawledUrls(urls)
+    urls = this.removeUnsupportedUrls(urls)
     this.urlsToCrawl = [...this.urlsToCrawl, ...urls]
     const domains = linkListToDomains(urls)
     Object.keys(domains).forEach(host => {
@@ -75,24 +90,16 @@ export default class Crawler {
               return done()
             }
 
-            const params = [res.body, res.$, res.headers, url, res.statusCode]
-
+            const params = {
+              url,
+              body: res.body,
+              $: res.$,
+              headers: res.headers,
+              statusCode: res.statusCode
+            }
             // First parsing the document
-            after(this.app.parseDocument.apply(null, params))
-              .then(result => {
-                this.crawledLinks[url] = result
-              })
+            this.app.process(params, this.interface)
               .then(() => {
-                // Then expanding links
-                return after(this.app.expandLinks.apply(null, params))
-                .then(links => {
-                  if (links) {
-                    this.queueUrls(links.map(l => l.url))
-                  }
-                })
-              })
-              .then(() => {
-                // Lastly marking the url as fetched
                 this.finishUrl(url)
                 done()
               })

@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import winston from 'winston'
 
-import * as app from './apps/linkDataExtractor'
+import App from './apps/linkDataExtractor'
 
 let EXIT_REASON = null
 
@@ -38,7 +38,7 @@ const crawler = new Crawler({
   throttlePerDomain: 1000 // ms
 })
 crawler
-  .crawl(SEED_URLS, app)
+  .crawl(SEED_URLS, new App())
   .then(result => {
     logger.info('Nothing left todo. Goodbye!')
     process.exit(0)
@@ -46,7 +46,7 @@ crawler
 
 process.on('exit', () => {
   const filename = `${Date.now()}.json`
-  logger.info('about to leave… saving data to', `results/${filename}`)
+  logger.info(`about to leave… saving data to 'results/${filename}'`)
   fs.writeFileSync(path.join(__dirname, '../results', filename), JSON.stringify({
     reason: EXIT_REASON || 'finished',
     ...crawler.report()
