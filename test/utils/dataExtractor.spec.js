@@ -1,10 +1,11 @@
+/* eslint-env jest */
 import examplePage from '../../examples/tanzschule-stender-de.html.js'
 import dataExtractor from '../../src/utils/dataExtractor'
 
 describe('utils/dataExtractor', () => {
   let subject
   beforeEach(() => {
-    return dataExtractor(examplePage, 'http://www.tanzschule-stender.de').then(x => subject = x)
+    return dataExtractor(examplePage, 'http://www.tanzschule-stender.de').then(x => { subject = x })
   })
 
   it('extracts basic infos', () => {

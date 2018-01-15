@@ -1,10 +1,11 @@
+/* eslint-env jest */
 import examplePage from '../../examples/tanzschule-stender-de.html.js'
 import linkExtractor from '../../src/utils/linkExtractor'
 
 describe('utils/linkExtractor', () => {
   let subject
   beforeEach(() => {
-    return linkExtractor(examplePage, 'http://www.tanzschule-stender.de').then(x => subject = x)
+    return linkExtractor(examplePage, 'http://www.tanzschule-stender.de').then(x => { subject = x })
   })
 
   it('extracts links with data additional data', () => {
