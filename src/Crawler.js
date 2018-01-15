@@ -65,9 +65,10 @@ export default class Crawler {
           callback: (err, res, done) => {
             const url = res.request.uri.href
             if (err || res.statusCode !== 200) {
-              if (err) console.error(err)
-              this.crawledLinks[url] = {
-                err,
+              if (err) this.logger.error(`Error fetching URL "${url}"`, err)
+              this.crawledLinks[url] = err ? {
+                error: err
+              } : {
                 status: res.statusCode
               }
               this.finishUrl(url)
