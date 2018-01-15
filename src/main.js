@@ -5,6 +5,8 @@ import winston from 'winston'
 
 import * as app from './apps/linkDataExtractor'
 
+let EXIT_REASON = null
+
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'error',
   format: winston.format.json(),
@@ -38,18 +40,22 @@ const crawler = new Crawler({
 crawler
   .crawl(SEED_URLS, app)
   .then(result => {
-    logger.log('Nothing left todo. Goodbye!')
+    logger.info('Nothing left todo. Goodbye!')
     process.exit(0)
   })
 
 process.on('exit', () => {
   const filename = `${Date.now()}.json`
-  logger.log('about to leave… saving data to', `results/${filename}`)
-  fs.writeFileSync(path.join(__dirname, '../results', filename), JSON.stringify(crawler.report(), null, 2))
+  logger.info('about to leave… saving data to', `results/${filename}`)
+  fs.writeFileSync(path.join(__dirname, '../results', filename), JSON.stringify({
+    reason: EXIT_REASON || 'finished',
+    ...crawler.report()
+  }, null, 2))
   process.exit(0)
 })
 
 // Catch CTRL+C
 process.on('SIGINT', () => {
+  EXIT_REASON = 'User interrupt'
   process.exit(0)
 })
