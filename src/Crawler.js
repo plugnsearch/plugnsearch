@@ -57,6 +57,7 @@ export default class Crawler {
       if (!this.domainCrawlers[host]) {
         const dc = new DomainCrawler({
           maxConnection: this.connectionsPerDomain,
+          rateLimit: this.throttlePerDomain,
           preRequest: (options, done) => {
             this.logger.info(`Fetching url ${options.uri}`)
             done()
