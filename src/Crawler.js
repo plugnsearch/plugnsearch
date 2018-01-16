@@ -104,7 +104,7 @@ export default class Crawler {
                 done()
               })
               .catch(err => {
-                this.logger.error(err)
+                this.logger.error(err.toString(), { stack: err.stack })
               })
           }
         })
