@@ -114,8 +114,6 @@ describe('Crawler', () => {
 
     it('sends page body, response headers and url to process method of given app', () => {
       crawler.addApp({
-        contentType: 'html',
-
         process: ({ url, body, headers }) => {
           expect(url).toEqual(TEST_URL)
           expect(body).toEqual(exampleHTML)
@@ -127,8 +125,6 @@ describe('Crawler', () => {
 
     it('passes contentType and statusCode to apps process as well', () => {
       crawler.addApp({
-        contentType: 'html',
-
         process: ({ contentType, statusCode }) => {
           expect(contentType).toEqual('text/html')
           expect(statusCode).toEqual(202)
@@ -139,8 +135,6 @@ describe('Crawler', () => {
 
     it('passes the reporter to the process method', () => {
       crawler.addApp({
-        contentType: 'html',
-
         process: ({ reporter }) => {
           expect(reporter).toBeInstanceOf(Reporter)
         }
@@ -151,8 +145,6 @@ describe('Crawler', () => {
     it('passes a queueUrls method that can be used to path further links', done => {
       let callCount = 0
       crawler.addApp({
-        contentType: 'html',
-
         process: ({ url, queueUrls }) => {
           if (callCount === 0) {
             expect(url).toEqual(TEST_URL)
@@ -174,8 +166,6 @@ describe('Crawler', () => {
     it('also passes jQuery like interface (using cheerio) to process method', () => {
       exampleHTML = '<html><body><h1>Hello World!</h1></body></html>'
       crawler.addApp({
-        contentType: 'html',
-
         process: ({ $ }) => {
           expect($('h1').html()).toEqual('Hello World!')
         }
@@ -199,8 +189,6 @@ describe('Crawler', () => {
     it('process methods can return a promise', done => {
       let callCount = 0
       crawler.addApp({
-        contentType: 'html',
-
         process: ({ queueUrls }) => {
           ++callCount
           if (callCount === 1) {
@@ -233,8 +221,6 @@ describe('Crawler', () => {
           }
         })
         crawler.addApp({
-          contentType: 'html',
-
           process: ({ $ }) => {
             expect($('h1').text()).toEqual('Hello World!')
           },
@@ -248,7 +234,71 @@ describe('Crawler', () => {
     })
 
     describe('specifying a contentType', () => {
+      it('is never called if the contentType mitmatches a given string', () => {
+        let callCount = 0
 
+        crawler.addApp({
+          contentType: 'text/plain',
+
+          process: ({ queueUrls }) => {
+            expect('called').toEqual('be never called')
+          }
+        })
+        crawler.addApp({
+          contentType: 'text/html',
+
+          process: ({ queueUrls }) => {
+            ++callCount
+          }
+        })
+
+        crawler.seed(TEST_URL).start()
+        expect(callCount).toEqual(1)
+      })
+
+      it('is never called if the contentType does not match one of multiple strings', () => {
+        let callCount = 0
+
+        crawler.addApp({
+          contentType: ['text/plain', 'text/something'],
+
+          process: ({ queueUrls }) => {
+            expect('called').toEqual('be never called')
+          }
+        })
+        crawler.addApp({
+          contentType: ['text/plain', 'text/html'],
+
+          process: ({ queueUrls }) => {
+            ++callCount
+          }
+        })
+
+        crawler.seed(TEST_URL).start()
+        expect(callCount).toEqual(1)
+      })
+
+      it('is never called if the contentType does not match a regex', () => {
+        let callCount = 0
+
+        crawler.addApp({
+          contentType: /^html$/,
+
+          process: ({ queueUrls }) => {
+            expect('called').toEqual('be never called')
+          }
+        })
+        crawler.addApp({
+          contentType: /.*html.*/,
+
+          process: ({ queueUrls }) => {
+            ++callCount
+          }
+        })
+
+        crawler.seed(TEST_URL).start()
+        expect(callCount).toEqual(1)
+      })
     })
   })
 })

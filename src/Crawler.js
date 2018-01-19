@@ -10,7 +10,17 @@ import isArray from 'lodash/isArray'
 import SimpleURLQueue from './SimpleURLQueue'
 import Reporter from './Reporter'
 
-// const supportedProtocolRegex = /^https?:\/\//
+const appUsesContentType = (app, contentType) => {
+  if (!app.contentType) return true
+
+  if (typeof app.contentType === 'string') return app.contentType === contentType
+
+  if (isArray(app.contentType)) return app.contentType.indexOf(contentType) !== -1
+
+  if (app.contentType.constructor === RegExp) return app.contentType.test(contentType)
+
+  return false
+}
 
 export default class Crawler extends EventEmitter {
   constructor ({
@@ -107,6 +117,9 @@ export default class Crawler extends EventEmitter {
       response
     }
     return Promise.all(this.apps.map(app => {
+      if (!appUsesContentType(app, params.contentType)) {
+        return Promise.resolve()
+      }
       if (!app.noCheerio) {
         $ = cheerio.load(response.body)
       }
