@@ -1,124 +1,156 @@
-import path from 'path'
-import { spawn } from 'child_process'
+import EventEmitter from 'events'
+// import path from 'path'
+// import { spawn } from 'child_process'
 import DomainCrawler from 'crawler'
+import request from 'request'
+import cheerio from 'cheerio'
+import isArray from 'lodash/isArray'
 
 import linkListToDomains from './utils/linkListToDomains'
+import SimpleURLQueue from './SimpleURLQueue'
+import Reporter from './Reporter'
 
-const supportedProtocolRegex = /^https?:\/\//
+// const supportedProtocolRegex = /^https?:\/\//
 
-export default class Crawler {
-  constructor ({ name, connectionsPerDomain = 10, throttlePerDomain = 10, logger = console }) {
-    this.name = name
+export default class Crawler extends EventEmitter {
+  constructor ({
+    /**
+     * Defines how much connections are allowed per domain
+     */
+    connectionsPerDomain = 1,
+    /**
+     * Defines how many milliseconds we should wait before hammering the same domain
+     */
+    throttlePerDomain = 1000,
+    /**
+     * Could be a list of userAgents, that the agents will be rotated
+     */
+    userAgent = 'AwesomeSearchBot',
+    /**
+     * Options for request, use what ever request allows
+     */
+    requestOptions = {},
+    /**
+     * This ignore the robots.txt file
+     */
+    ignoreRobotsTxt = false, // @TODO
+    /**
+     * Define the logger that we log to
+     */
+    logger = console,
+    /**
+     * Instance of somethign that has the interface of SimpleURLQueue and stores
+     * the URLs we want to crawl
+     */
+    queue = new SimpleURLQueue(),
+    /**
+     * The Reporter should implement a report method, that we use to post useful infos
+     * about crawled pages
+     */
+    reporter = new Reporter()
+  } = {}) {
+    super()
     this.connectionsPerDomain = connectionsPerDomain
     this.throttlePerDomain = throttlePerDomain
+    this.requestOptions = requestOptions
+    this.userAgent = userAgent
+    this.reporter = reporter
     this.logger = logger
 
-    // this.processes = {}
-    this.domainCrawlers = {}
-    this.urlsToCrawl = []
-    this.crawledLinks = {}
+    this.apps = []
+    this.queue = queue
+  }
 
-    this.interface = {
-      queueLinks: this.queueUrls.bind(this),
-      postResults: this.storeResult.bind(this)
+  addApp (app) {
+    this.apps.push(app)
+    return this
+  }
+
+  seed (urls) {
+    this.queue.queue(urls)
+    return this
+  }
+
+  start () {
+    this.tick()
+    return this
+  }
+
+  tick () {
+    const url = this.queue.getNextUrl()
+    if (!url) {
+      this.emit('finish', this.reporter)
+      return
     }
-  }
-
-  crawl (urls, app) {
-    this.app = app
-    this.queueUrls(urls)
-    return new Promise(resolve => {
-      this.resolve = () => resolve(this.crawledLinks)
-    })
-  }
-
-  removeCrawledUrls (urls) {
-    return urls.filter(url => {
-      if (this.crawledLinks[url]) return false
-      return true
-    })
-  }
-
-  removeUnsupportedUrls (urls) {
-    return urls.filter(url => {
-      const isSupported = supportedProtocolRegex.test(url)
-      if (!isSupported) {
-        this.crawledLinks[url] = {
-          rejected: 'protocol not supported',
-          protocol: url.split('/')[0]
-        }
+    this.createRequest(url, (err, response) => {
+      if (err) {
+        this.logger.error(err)
+      } else {
+        this.runApps(response)
       }
-      return isSupported
+
+      this.tick()
     })
+  }
+
+  // @private
+  runApps (response) {
+    let $
+    const params = {
+      reporter: this.reporter,
+      url: response.href,
+      body: response.body,
+      headers: response.headers,
+      statusCode: response.statusCode,
+      contentType: (response.headers || {})['Content-Type'],
+      queueUrls: (urls) => this.queue.queue(urls),
+      response
+    }
+    this.apps.forEach(app => {
+      if (!app.noCheerio) {
+        $ = cheerio.load(response.body)
+      }
+      try {
+        app.process(app.noCheerio ? params : {
+          ...params,
+          $
+        })
+      } catch (err) {
+        this.logger.error(err)
+        app.processCatch(err)
+      }
+    })
+  }
+
+  // @private
+  createRequest (uri, cb) {
+    const options = {
+      uri,
+      ...this.requestOptions,
+      headers: {
+        'User-Agent': this.showUserAgent(),
+        ...(this.requestOptions.headers || {})
+      }
+    }
+
+    request(options, cb)
+  }
+
+  // @private
+  showUserAgent () {
+    if (isArray(this.userAgent)) {
+      const nextAgent = this.userAgent.shift()
+      this.userAgent.push(nextAgent)
+      return nextAgent
+    }
+    return this.userAgent
   }
 
   report () {
-    return {
-      crawledUrls: this.crawledLinks,
-      urlsTodo: this.urlsToCrawl
-    }
+    return this.reporter.toJson()
   }
 
   storeResult (url, data) {
     this.crawledLinks[url] = data
-  }
-
-  queueUrls (urls) {
-    urls = this.removeCrawledUrls(urls)
-    urls = this.removeUnsupportedUrls(urls)
-    this.urlsToCrawl = [...this.urlsToCrawl, ...urls]
-    const domains = linkListToDomains(urls)
-    Object.keys(domains).forEach(host => {
-      if (!this.domainCrawlers[host]) {
-        const dc = new DomainCrawler({
-          maxConnection: this.connectionsPerDomain,
-          rateLimit: this.throttlePerDomain,
-          preRequest: (options, done) => {
-            this.logger.info(`Fetching url ${options.uri}`)
-            done()
-          },
-          callback: (err, res, done) => {
-            const url = res.request.uri.href
-            if (err || res.statusCode !== 200) {
-              if (err) this.logger.error(`Error fetching URL "${url}"`, err)
-              this.crawledLinks[url] = err ? {
-                error: err
-              } : {
-                status: res.statusCode
-              }
-              this.finishUrl(url)
-              return done()
-            }
-
-            const params = {
-              url,
-              body: res.body,
-              $: res.$,
-              headers: res.headers,
-              statusCode: res.statusCode
-            }
-            // First parsing the document
-            this.app.process(params, this.interface)
-              .then(() => {
-                this.finishUrl(url)
-                done()
-              })
-              .catch(err => {
-                this.logger.error(err.toString(), { stack: err.stack })
-              })
-          }
-        })
-
-        this.domainCrawlers[host] = dc
-      }
-      this.domainCrawlers[host].queue(domains[host])
-    })
-  }
-
-  finishUrl (url) {
-    this.urlsToCrawl.splice(this.urlsToCrawl.indexOf(url), 1)
-    if (this.urlsToCrawl.length === 0) {
-      this.resolve(this.report())
-    }
   }
 }
