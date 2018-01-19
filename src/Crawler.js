@@ -98,7 +98,10 @@ export default class Crawler extends EventEmitter {
         this.tick()
       } else {
         this.runApps(response)
-          .then(() => this.tick())
+          .then(() => {
+            this.reporter.report(url)
+            this.tick()
+          })
       }
     })
   }
@@ -107,7 +110,7 @@ export default class Crawler extends EventEmitter {
   runApps (response) {
     let $
     const params = {
-      reporter: this.reporter,
+      report: (type, data) => this.reporter.report(response.href, type, data),
       url: response.href,
       body: response.body,
       headers: response.headers,

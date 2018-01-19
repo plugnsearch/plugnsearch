@@ -9,9 +9,11 @@ export default class Reporter {
       this.data[url] = {}
     }
 
-    this.data[url][type] = typeof content === 'string' ? content : {
-      ...(this.data[url][type] || {}),
-      ...content
+    if (type) {
+      this.data[url][type] = typeof content === 'string' ? content : {
+        ...(this.data[url][type] || {}),
+        ...content
+      }
     }
   }
 

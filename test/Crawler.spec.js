@@ -104,12 +104,7 @@ describe('Crawler', () => {
         headers: headers,
         statusCode: 202
       })
-      crawler = new Crawler({
-        logger: {
-          log: console.log,
-          error: (err) => { throw err }
-        }
-      })
+      crawler = new Crawler()
     })
 
     it('sends page body, response headers and url to process method of given app', () => {
@@ -135,8 +130,8 @@ describe('Crawler', () => {
 
     it('passes the reporter to the process method', () => {
       crawler.addApp({
-        process: ({ reporter }) => {
-          expect(reporter).toBeInstanceOf(Reporter)
+        process: ({ report }) => {
+          expect(typeof report).toEqual('function')
         }
       })
       crawler.seed(TEST_URL).start()
@@ -230,6 +225,46 @@ describe('Crawler', () => {
           }
         })
         crawler.seed(TEST_URL).start()
+      })
+    })
+
+    describe('reporting', () => {
+      it('just include the processed urls if no special reports are added', done => {
+        crawler.addApp({
+          process: () => {}
+        })
+        crawler.seed(TEST_URL)
+          .on('finish', reporter => {
+            expect(reporter.toJson()).toEqual({
+              [TEST_URL]: {}
+            })
+            done()
+          })
+          .start()
+      })
+
+      it('every app can include its information to be added to report', done => {
+        crawler.addApp({
+          process: ({ report }) => {
+            report('test', 'FOO')
+          }
+        })
+        crawler.addApp({
+          process: ({ report }) => {
+            report('infos', { 'great': 'stuff' })
+          }
+        })
+        crawler.seed(TEST_URL)
+          .on('finish', reporter => {
+            expect(reporter.toJson()).toEqual({
+              [TEST_URL]: {
+                'test': 'FOO',
+                'infos': { 'great': 'stuff' }
+              }
+            })
+            done()
+          })
+          .start()
       })
     })
 
