@@ -1,9 +1,22 @@
 {
-  "name": "websearch",
+  "name": "plugnsearch",
   "version": "1.0.0",
-  "description": "A plugable webspider to search the web for stuff we need.",
+  "description": "The only real plugable webspider / webcrawler to search the web for stuff you need.",
   "main": "index.js",
   "private": true,
+  "keywords": [
+    "crawler",
+    "spider",
+    "scraper",
+    "configurable",
+    "search",
+    "nodejs",
+    "jquery",
+    "websearch",
+    "webspider",
+    "webcrawler",
+    "queue"
+  ],
   "scripts": {
     "test": "jest",
     "start": "babel-node src/main.js"
