@@ -136,7 +136,17 @@ export default class Crawler extends EventEmitter {
         }
       } catch (err) {
         this.logError(err)
-        app.processCatch(err)
+        if (app.processCatch) {
+          app.processCatch(err)
+        } else {
+          this.reporter.report(response.href, 'error', {
+            type: 'AppError',
+            message: `process method failed because of ${err.toString()}`,
+            stackTrace: StackTraceParser.parse(err.stack).slice(0, 1).map(line => (
+              `at ${line.file}:${line.lineNumber}:${line.column}`
+            )).join('/n')
+          })
+        }
       }
       return Promise.resolve()
     }))

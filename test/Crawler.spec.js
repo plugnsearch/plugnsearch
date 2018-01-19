@@ -204,6 +204,61 @@ describe('Crawler', () => {
         .start()
     })
 
+    describe('processCatch', () => {
+      it('is called if an error happens when process throws one', () => {
+        let callCount = 0
+        crawler.logger = { error: jest.fn() } // surpress error logging
+        crawler.addApp({
+          process: () => {
+            throw new Error('BUMM')
+          },
+
+          processCatch: (err) => {
+            ++callCount
+            expect(err).toEqual(new Error('BUMM'))
+          }
+        })
+        crawler.seed(TEST_URL).start()
+        expect(callCount).toEqual(1)
+        // it is still logged though
+        expect(crawler.logger.error).toHaveBeenCalledTimes(1)
+      })
+
+      it('if no processCatch is defined, and a error is thrown it is just logged', () => {
+        crawler.logger = { error: jest.fn() } // surpress error logging
+        crawler.addApp({
+          process: () => {
+            throw new Error('BUMM')
+          }
+        })
+        crawler.seed(TEST_URL).start()
+        // it is still logged though
+        expect(crawler.logger.error).toHaveBeenCalledTimes(1)
+      })
+
+      it('if no processCatch is defined, the error is reported with one line of stackTrace', () => {
+        crawler.logger = { error: jest.fn() } // surpress error logging
+        crawler.addApp({
+          process: () => {
+            throw new Error('BUMM')
+          }
+        })
+        crawler.seed(TEST_URL)
+          .on('finish', reporter => {
+            expect(reporter.toJson()).toEqual({
+              [TEST_URL]: {
+                'error': {
+                  type: 'AppError',
+                  message: 'process method failed because of Error: BUMM',
+                  stackTrace: expect.stringMatching('at /Users/calamari/work/websearch/test/Crawler.spec.js:')
+                }
+              }
+            })
+          })
+          .start()
+      })
+    })
+
     describe('having multiple apps', () => {
       it('only provide jQuery interface to apps who wants it', () => {
         exampleHTML = '<html><body><h1>Hello World!</h1></body></html>'
