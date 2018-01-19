@@ -112,7 +112,7 @@ describe('Crawler', () => {
       })
     })
 
-    it('sends page body, response headers and url to process method of given app', done => {
+    it('sends page body, response headers and url to process method of given app', () => {
       crawler.addApp({
         contentType: 'html',
 
@@ -120,20 +120,18 @@ describe('Crawler', () => {
           expect(url).toEqual(TEST_URL)
           expect(body).toEqual(exampleHTML)
           expect(headers).toEqual(headers)
-          done()
         }
       })
       crawler.seed(TEST_URL).start()
     })
 
-    it('passes contentType and statusCode to apps process as well', done => {
+    it('passes contentType and statusCode to apps process as well', () => {
       crawler.addApp({
         contentType: 'html',
 
         process: ({ contentType, statusCode }) => {
           expect(contentType).toEqual('text/html')
           expect(statusCode).toEqual(202)
-          done()
         }
       })
       crawler.seed(TEST_URL).start()
@@ -196,6 +194,31 @@ describe('Crawler', () => {
         }
       })
       crawler.seed(TEST_URL).start()
+    })
+
+    it('process methods can return a promise', done => {
+      let callCount = 0
+      crawler.addApp({
+        contentType: 'html',
+
+        process: ({ queueUrls }) => {
+          ++callCount
+          if (callCount === 1) {
+            return new Promise(function (resolve) {
+              setTimeout(() => {
+                queueUrls('http://go.here')
+                resolve()
+              })
+            }, 10)
+          }
+        }
+      })
+      crawler.seed(TEST_URL)
+        .on('finish', () => {
+          expect(callCount).toEqual(2)
+          done()
+        })
+        .start()
     })
 
     describe('having multiple apps', () => {

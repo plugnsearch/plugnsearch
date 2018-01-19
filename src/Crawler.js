@@ -2,12 +2,11 @@ import EventEmitter from 'events'
 import StackTraceParser from 'stacktrace-parser'
 // import path from 'path'
 // import { spawn } from 'child_process'
-import DomainCrawler from 'crawler'
 import request from 'request'
 import cheerio from 'cheerio'
 import isArray from 'lodash/isArray'
 
-import linkListToDomains from './utils/linkListToDomains'
+// import linkListToDomains from './utils/linkListToDomains'
 import SimpleURLQueue from './SimpleURLQueue'
 import Reporter from './Reporter'
 
@@ -86,11 +85,11 @@ export default class Crawler extends EventEmitter {
     this.createRequest(url, (err, response) => {
       if (err) {
         this.logError(err)
+        this.tick()
       } else {
         this.runApps(response)
+          .then(() => this.tick())
       }
-
-      this.tick()
     })
   }
 
@@ -107,20 +106,24 @@ export default class Crawler extends EventEmitter {
       queueUrls: (urls) => this.queue.queue(urls),
       response
     }
-    this.apps.forEach(app => {
+    return Promise.all(this.apps.map(app => {
       if (!app.noCheerio) {
         $ = cheerio.load(response.body)
       }
       try {
-        app.process(app.noCheerio ? params : {
+        const result = app.process(app.noCheerio ? params : {
           ...params,
           $
         })
+        if (result && result.constructor === Promise) {
+          return result
+        }
       } catch (err) {
         this.logError(err)
         app.processCatch(err)
       }
-    })
+      return Promise.resolve()
+    }))
   }
 
   // @private
