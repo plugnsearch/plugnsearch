@@ -1,4 +1,5 @@
 import EventEmitter from 'events'
+import StackTraceParser from 'stacktrace-parser'
 // import path from 'path'
 // import { spawn } from 'child_process'
 import DomainCrawler from 'crawler'
@@ -84,7 +85,7 @@ export default class Crawler extends EventEmitter {
     }
     this.createRequest(url, (err, response) => {
       if (err) {
-        this.logger.error(err)
+        this.logError(err)
       } else {
         this.runApps(response)
       }
@@ -116,7 +117,7 @@ export default class Crawler extends EventEmitter {
           $
         })
       } catch (err) {
-        this.logger.error(err)
+        this.logError(err)
         app.processCatch(err)
       }
     })
@@ -152,5 +153,12 @@ export default class Crawler extends EventEmitter {
 
   storeResult (url, data) {
     this.crawledLinks[url] = data
+  }
+
+  // @private
+  logError (err) {
+    this.logger.error(err.toString() + '/n' + StackTraceParser.parse(err.stack).map(line => (
+      `  at ${line.file}:${line.lineNumber}:${line.column}`
+    )).join('/n'))
   }
 }

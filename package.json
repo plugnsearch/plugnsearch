@@ -35,6 +35,7 @@
     "lodash": "^4.17.4",
     "normalize-url": "^2.0.1",
     "request": "^2.83.0",
+    "stacktrace-parser": "^0.1.4",
     "winston": "^3.0.0-rc1"
   },
   "devDependencies": {
