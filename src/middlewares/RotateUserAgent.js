@@ -4,6 +4,9 @@
  * is defined through the Crawler `userAgents` option
  */
 export default class RotateUserAgent {
+  name = 'RotateUserAgent'
+  noCheerio = true
+
   constructor (options) {
     this.appOptions = options
     this.index = 0

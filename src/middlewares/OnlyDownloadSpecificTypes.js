@@ -11,6 +11,9 @@ class UninterestingError {}
  * It needs the `onlySpecificContentTypes` config in app to be set
  */
 export default class OnlyDownloadSpecificTypes {
+  name = 'OnlyDownloadSpecificTypes'
+  noCheerio = true
+
   constructor (options) {
     this.appOptions = options
   }

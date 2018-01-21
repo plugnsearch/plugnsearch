@@ -9,6 +9,7 @@ const sleep = util.promisify(setTimeout)
  */
 export default class ThrottleRequests {
   name = 'ThrottleRequests'
+  noCheerio = true
 
   constructor (options) {
     this.appOptions = options
