@@ -32,7 +32,6 @@ describe('Crawler', () => {
     })
 
     it('emits finish directly if called with empty seed', done => {
-      const spy = jest.fn()
       crawler.seed([])
         .on('finish', reporter => {
           expect(reporter).toEqual(expect.any(Reporter))
@@ -122,6 +121,17 @@ describe('Crawler', () => {
       })
       crawler.seed(TEST_URL)
         .on('finish', () => done())
+        .start()
+    })
+
+    it('app without process method does not hurt', done => {
+      crawler.addApp({
+      })
+      crawler.seed(TEST_URL)
+        .on('finish', reporter => {
+          expect(reporter.toJson()[TEST_URL]).toEqual({})
+          done()
+        })
         .start()
     })
 

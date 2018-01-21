@@ -158,7 +158,7 @@ export default class Crawler extends EventEmitter {
       queueUrls: (urls) => this.queue.queue(urls),
       response
     }
-    return Promise.all(this.apps.map(app => {
+    return Promise.all(this.apps.filter(app => app.process).map(app => {
       if (!appUsesContentType(app, params.contentType)) {
         return Promise.resolve()
       }
