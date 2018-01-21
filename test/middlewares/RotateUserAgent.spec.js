@@ -54,7 +54,11 @@ describe('apps/RotateUserAgent', () => {
     let calledOptions
 
     beforeEach(() => {
-      getMockResponse = () => ({})
+      getMockResponse = ({ uri }) => ({
+        request: {
+          href: uri
+        }
+      })
       calledOptions = []
       mockRequest.mockImplementation((options, cb) => {
         calledOptions.push(options)

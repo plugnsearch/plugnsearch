@@ -10,7 +10,7 @@ class UninterestingError {}
  * with a note
  * It needs the `onlySpecificContentTypes` config in app to be set
  */
-export default class RotateUserAgent {
+export default class OnlyDownloadSpecificTypes {
   constructor (options) {
     this.appOptions = options
   }
@@ -24,7 +24,7 @@ export default class RotateUserAgent {
         if (err) {
           reject(err)
         } else {
-          const contentType = response.headers['Content-Type']
+          const contentType = response.headers['content-type']
           if (checkContentType(this.appOptions.onlySpecificContentTypes, contentType)) {
             resolve()
           } else {

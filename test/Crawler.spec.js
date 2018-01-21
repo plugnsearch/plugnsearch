@@ -12,7 +12,11 @@ describe('Crawler', () => {
   let calledOptions
 
   beforeEach(() => {
-    getMockResponse = () => ({})
+    getMockResponse = ({ uri }) => ({
+      request: {
+        href: uri
+      }
+    })
     calledOptions = []
     mockRequest.mockImplementation((options, cb) => {
       calledOptions.push(options)
@@ -73,9 +77,11 @@ describe('Crawler', () => {
 
     beforeEach(() => {
       exampleHTML = '<html></html>'
-      headers = { 'Content-Type': 'text/html' }
+      headers = { 'content-type': 'text/html' }
       getMockResponse = (options) => ({
-        href: options.uri,
+        request: {
+          href: options.uri
+        },
         body: exampleHTML,
         headers: headers,
         statusCode: 202

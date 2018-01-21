@@ -18,7 +18,7 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
     resultContentType = 'text/html'
     getMockResponse = () => ({
       headers: {
-        'Content-Type': resultContentType
+        'content-type': resultContentType
       }
     })
     calledOptions = []
@@ -167,10 +167,13 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
   describe('integration test', () => {
     let crawler
 
-    it('we can set multiple userAgents the crawler  cycles through', done => {
+    it('works with Crawler', done => {
       getMockResponse = ({ uri }) => ({
+        request: {
+          href: uri
+        },
         headers: {
-          'Content-Type': uri.split('?')[1]
+          'content-type': uri.split('?')[1]
         }
       })
       crawler = new Crawler({
@@ -179,8 +182,7 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
       crawler.addApp(config => new OnlyDownloadSpecificTypes(config))
       crawler.seed(['http://localhost/?text/html', 'http://localhost/?audio/mp3'])
         .on('finish', (reporter) => {
-          const report = reporter.toJson()
-          expect(report).toEqual({
+          expect(reporter.toJson()).toEqual({
             'http://localhost/?text/html': {},
             'http://localhost/?audio/mp3': {
               'skipped': 'The Content-Type "audio/mp3" does not match allowed content-type. Resource will be skipped.'

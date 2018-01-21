@@ -154,12 +154,12 @@ export default class Crawler extends EventEmitter {
   runApps (response) {
     let $
     const params = {
-      report: (type, data) => this.reporter.report(response.href, type, data),
-      url: response.href,
+      report: (type, data) => this.reporter.report(response.request.href, type, data),
+      url: response.request.href,
       body: response.body,
       headers: response.headers,
       statusCode: response.statusCode,
-      contentType: (response.headers || {})['Content-Type'],
+      contentType: (response.headers || {})['content-type'],
       queueUrls: (urls) => this.queue.queue(urls),
       response
     }
@@ -183,7 +183,7 @@ export default class Crawler extends EventEmitter {
         if (app.processCatch) {
           app.processCatch(err)
         } else {
-          this.reporter.report(response.href, 'error', {
+          this.reporter.report(response.request.href, 'error', {
             type: 'AppError',
             message: `process method failed because of ${err.toString()}`,
             stackTrace: StackTraceParser.parse(err.stack).slice(0, 1).map(line => (
