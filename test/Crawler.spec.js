@@ -15,8 +15,9 @@ describe('Crawler', () => {
 
   beforeEach(() => {
     getMockResponse = () => ({})
+    calledOptions = []
     mockRequest.mockImplementation((options, cb) => {
-      calledOptions = options
+      calledOptions.push(options)
       cb(requestError, getMockResponse(options))
     })
   })
@@ -30,64 +31,68 @@ describe('Crawler', () => {
       crawler = new Crawler()
     })
 
-    it('emits finish directly if called with empty seed', () => {
+    it('emits finish directly if called with empty seed', done => {
       const spy = jest.fn()
       crawler.seed([])
-        .on('finish', spy)
+        .on('finish', reporter => {
+          expect(reporter).toEqual(expect.any(Reporter))
+          done()
+        })
         .start()
-
-      expect(spy).toHaveBeenCalledWith(expect.any(Reporter))
     })
 
-    it('puts in the right default userAgent', () => {
+    it('puts in the right default userAgent', done => {
       crawler.seed('http://localhost/item1')
+        .on('finish', () => {
+          expect(calledOptions[0]).toEqual(expect.objectContaining({
+            headers: {
+              'User-Agent': 'AwesomeSearchBot'
+            }
+          }))
+          done()
+        })
         .start()
-
-      expect(calledOptions).toEqual(expect.objectContaining({
-        headers: {
-          'User-Agent': 'AwesomeSearchBot'
-        }
-      }))
     })
   })
 
-  it('we can set a userAgent', () => {
+  it('we can set a userAgent', done => {
     crawler = new Crawler({ userAgent: 'Botty' })
     crawler.seed('http://localhost/item1')
+      .on('finish', () => {
+        expect(calledOptions[0]).toEqual(expect.objectContaining({
+          headers: {
+            'User-Agent': 'Botty'
+          }
+        }))
+        done()
+      })
       .start()
-
-    expect(calledOptions).toEqual(expect.objectContaining({
-      headers: {
-        'User-Agent': 'Botty'
-      }
-    }))
   })
 
-  it('we can set multiple userAgents it uses and cycles through', () => {
+  it('we can set multiple userAgents it uses and cycles through', done => {
     crawler = new Crawler({ userAgent: ['Botty', 'GreatBot', 'VeryNiceBotIndeed'] })
-    crawler.seed('http://localhost/item1').start()
+    crawler.seed(['http://localhost/item1', 'http://localhost/item2', 'http://localhost/item3'])
+      .on('finish', () => {
+        expect(calledOptions[0]).toEqual(expect.objectContaining({
+          headers: {
+            'User-Agent': 'Botty'
+          }
+        }))
 
-    expect(calledOptions).toEqual(expect.objectContaining({
-      headers: {
-        'User-Agent': 'Botty'
-      }
-    }))
+        expect(calledOptions[1]).toEqual(expect.objectContaining({
+          headers: {
+            'User-Agent': 'GreatBot'
+          }
+        }))
 
-    crawler.seed('http://localhost/item2').start()
-
-    expect(calledOptions).toEqual(expect.objectContaining({
-      headers: {
-        'User-Agent': 'GreatBot'
-      }
-    }))
-
-    crawler.seed('http://localhost/item3').start()
-
-    expect(calledOptions).toEqual(expect.objectContaining({
-      headers: {
-        'User-Agent': 'VeryNiceBotIndeed'
-      }
-    }))
+        expect(calledOptions[2]).toEqual(expect.objectContaining({
+          headers: {
+            'User-Agent': 'VeryNiceBotIndeed'
+          }
+        }))
+        done()
+      })
+      .start()
   })
 
   describe('app processing', () => {
@@ -202,6 +207,127 @@ describe('Crawler', () => {
           done()
         })
         .start()
+    })
+
+    describe('before the request', () => {
+      it('we can add a preRequest callback to change request options', done => {
+        let callCount = 0
+        crawler.addApp({
+          preRequest: (options) => {
+            ++callCount
+            expect(options.uri).toEqual(TEST_URL)
+            options.uri += '?foo'
+          },
+
+          process: ({ url }) => {
+            expect(url).toEqual(TEST_URL + '?foo?bar')
+          }
+        })
+        crawler.addApp({
+          preRequest: (options) => {
+            callCount += 10
+            expect(options.uri).toEqual(TEST_URL + '?foo')
+            options.uri += '?bar'
+          },
+
+          process: ({ url }) => {
+            expect(url).toEqual(TEST_URL + '?foo?bar')
+          }
+        })
+        crawler.seed(TEST_URL)
+          .on('finish', reporter => {
+            expect(callCount).toEqual(11)
+            expect(reporter.toJson()[TEST_URL + '?foo?bar']).toEqual({})
+            done()
+          })
+          .start()
+      })
+
+      it('an error within a preRequest is noted and prohibits request to be done', done => {
+        let callCount = 0
+        crawler.addApp({
+          preRequest: () => {
+            throw new Error('Thrown up')
+          },
+
+          process: () => {
+            ++callCount
+          }
+        })
+        crawler.seed(TEST_URL)
+          .on('finish', reporter => {
+            expect(callCount).toEqual(0)
+            expect(reporter.toJson()[TEST_URL]).toEqual({
+              error: expect.objectContaining({
+                type: 'AppError',
+                message: `preRequest method failed because of Error: Thrown up`
+              })
+            })
+            done()
+          })
+          .start()
+      })
+
+      it('can be used to make a preflight request (so it can return a promise)', done => {
+        let callCount = 0
+        crawler.addApp({
+          preRequest: (options) => {
+            expect(options.uri).toEqual(TEST_URL)
+            options.uri += '?foo'
+            ++callCount
+            return Promise.resolve()
+          },
+
+          process: ({ url }) => {
+            expect(url).toEqual(TEST_URL + '?foo?bar')
+          }
+        })
+        crawler.addApp({
+          preRequest: (options) => {
+            expect(options.uri).toEqual(TEST_URL + '?foo')
+            options.uri += '?bar'
+            callCount += 10
+            return Promise.resolve()
+          },
+
+          process: ({ url }) => {
+            expect(url).toEqual(TEST_URL + '?foo?bar')
+          }
+        })
+        crawler.seed(TEST_URL)
+          .on('finish', reporter => {
+            expect(callCount).toEqual(11)
+            expect(reporter.toJson()[TEST_URL]).toBeUndefined()
+            expect(reporter.toJson()[TEST_URL + '?foo?bar']).toEqual({})
+            done()
+          })
+          .start()
+      })
+
+      it('a rejected promise within preRequest is noted and prohibits request to be done', done => {
+        let callCount = 0
+        crawler.addApp({
+          preRequest: () => {
+            return Promise.reject(new Error('DONT'))
+          },
+
+          process: () => {
+            ++callCount
+          }
+        })
+        crawler.seed(TEST_URL)
+          .on('finish', reporter => {
+            expect(callCount).toEqual(0)
+            expect(reporter.toJson()[TEST_URL]).toEqual({
+              error: expect.objectContaining({
+                type: 'AppError',
+                message: `preRequest method failed because of Error: DONT`
+              })
+            })
+            done()
+          })
+          .start()
+      })
     })
 
     describe('processCatch', () => {

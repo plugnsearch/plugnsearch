@@ -22,6 +22,12 @@ const appUsesContentType = (app, contentType) => {
   return false
 }
 
+const callPromisesInSeries = (series, params) => Promise.all([series.reduce(
+  // (m, p) => m.then(v => Promise.all([...v, p()])),
+  (memo, promise) => memo.then(() => promise(params)),
+  Promise.resolve([])
+)])
+
 export default class Crawler extends EventEmitter {
   constructor ({
     /**
@@ -92,16 +98,29 @@ export default class Crawler extends EventEmitter {
       this.emit('finish', this.reporter)
       return
     }
-    const requestOptions = this.createRequestOptions(url)
-    // this.runPrequests (params)
-    this.createRequest(requestOptions)
-      // run all the process methods of registered apps
-      .then(response => this.runApps(response))
-      // make sure URL is noted in report
-      .then(() => this.reporter.report(requestOptions.uri))
-      // if fail or success, we process the next URL
-      .then(() => this.tick())
-      .catch(() => this.tick())
+    this.runPrequests(this.createRequestOptions(url))
+      // if prerequests errors out, note that down and go on
+      .catch(err => {
+        this.reporter.report(url, 'error', {
+          type: 'AppError',
+          message: `preRequest method failed because of ${err.toString()}`,
+          stackTrace: StackTraceParser.parse(err.stack).slice(0, 1).map(line => (
+            `at ${line.file}:${line.lineNumber}:${line.column}`
+          )).join('/n')
+        })
+        this.tick()
+      })
+      // Do the real request
+      .then(requestOptions => {
+        this.createRequest(requestOptions)
+        // run all the process methods of registered apps
+        .then(response => this.runApps(response))
+        // make sure URL is noted in report
+        .then(() => this.reporter.report(requestOptions.uri))
+        // if fail or success, we process the next URL
+        .then(() => this.tick())
+        .catch(() => this.tick())
+      })
   }
 
   // @private
@@ -114,6 +133,16 @@ export default class Crawler extends EventEmitter {
         ...(this.requestOptions.headers || {})
       }
     }
+  }
+
+  // @private
+  runPrequests (requestOptions) {
+    const preRequests = this.apps
+      .map(app => app.preRequest)
+      .filter(x => x)
+    return callPromisesInSeries(preRequests, requestOptions)
+      // resolve with the final request options
+      .then(() => requestOptions)
   }
 
   // @private
