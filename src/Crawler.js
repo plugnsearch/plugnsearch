@@ -92,18 +92,28 @@ export default class Crawler extends EventEmitter {
       this.emit('finish', this.reporter)
       return
     }
-    this.createRequest(url, (err, response) => {
-      if (err) {
-        this.logError(err)
-        this.tick()
-      } else {
-        this.runApps(response)
-          .then(() => {
-            this.reporter.report(url)
-            this.tick()
-          })
+    const requestOptions = this.createRequestOptions(url)
+    // this.runPrequests (params)
+    this.createRequest(requestOptions)
+      // run all the process methods of registered apps
+      .then(response => this.runApps(response))
+      // make sure URL is noted in report
+      .then(() => this.reporter.report(requestOptions.uri))
+      // if fail or success, we process the next URL
+      .then(() => this.tick())
+      .catch(() => this.tick())
+  }
+
+  // @private
+  createRequestOptions (uri) {
+    return {
+      uri,
+      ...this.requestOptions,
+      headers: {
+        'User-Agent': this.showUserAgent(),
+        ...(this.requestOptions.headers || {})
       }
-    })
+    }
   }
 
   // @private
@@ -123,7 +133,7 @@ export default class Crawler extends EventEmitter {
       if (!appUsesContentType(app, params.contentType)) {
         return Promise.resolve()
       }
-      if (!app.noCheerio) {
+      if (!app.noCheerio && !$) {
         $ = cheerio.load(response.body)
       }
       try {
@@ -153,17 +163,17 @@ export default class Crawler extends EventEmitter {
   }
 
   // @private
-  createRequest (uri, cb) {
-    const options = {
-      uri,
-      ...this.requestOptions,
-      headers: {
-        'User-Agent': this.showUserAgent(),
-        ...(this.requestOptions.headers || {})
-      }
-    }
-
-    request(options, cb)
+  createRequest (requestOptions, cb) {
+    return new Promise((resolve, reject) => {
+      request(requestOptions, (err, response) => {
+        if (err) {
+          this.logError(err)
+          reject(err)
+        } else {
+          resolve(response)
+        }
+      })
+    })
   }
 
   // @private

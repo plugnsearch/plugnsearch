@@ -205,7 +205,7 @@ describe('Crawler', () => {
     })
 
     describe('processCatch', () => {
-      it('is called if an error happens when process throws one', () => {
+      it('is called if an error happens when process throws one', done => {
         let callCount = 0
         crawler.logger = { error: jest.fn() } // surpress error logging
         crawler.addApp({
@@ -218,22 +218,30 @@ describe('Crawler', () => {
             expect(err).toEqual(new Error('BUMM'))
           }
         })
-        crawler.seed(TEST_URL).start()
-        expect(callCount).toEqual(1)
-        // it is still logged though
-        expect(crawler.logger.error).toHaveBeenCalledTimes(1)
+        crawler.seed(TEST_URL)
+          .on('finish', () => {
+            expect(callCount).toEqual(1)
+            // it is still logged though
+            expect(crawler.logger.error).toHaveBeenCalledTimes(1)
+            done()
+          })
+          .start()
       })
 
-      it('if no processCatch is defined, and a error is thrown it is just logged', () => {
+      it('if no processCatch is defined, and a error is thrown it is just logged', done => {
         crawler.logger = { error: jest.fn() } // surpress error logging
         crawler.addApp({
           process: () => {
             throw new Error('BUMM')
           }
         })
-        crawler.seed(TEST_URL).start()
-        // it is still logged though
-        expect(crawler.logger.error).toHaveBeenCalledTimes(1)
+        crawler.seed(TEST_URL)
+          .on('finish', () => {
+            // it is still logged though
+            expect(crawler.logger.error).toHaveBeenCalledTimes(1)
+            done()
+          })
+          .start()
       })
 
       it('if no processCatch is defined, the error is reported with one line of stackTrace', () => {
@@ -324,7 +332,7 @@ describe('Crawler', () => {
     })
 
     describe('specifying a contentType', () => {
-      it('is never called if the contentType mitmatches a given string', () => {
+      it('is never called if the contentType mitmatches a given string', done => {
         let callCount = 0
 
         crawler.addApp({
@@ -342,11 +350,15 @@ describe('Crawler', () => {
           }
         })
 
-        crawler.seed(TEST_URL).start()
-        expect(callCount).toEqual(1)
+        crawler.seed(TEST_URL)
+          .on('finish', () => {
+            expect(callCount).toEqual(1)
+            done()
+          })
+          .start()
       })
 
-      it('is never called if the contentType does not match one of multiple strings', () => {
+      it('is never called if the contentType does not match one of multiple strings', done => {
         let callCount = 0
 
         crawler.addApp({
@@ -364,11 +376,15 @@ describe('Crawler', () => {
           }
         })
 
-        crawler.seed(TEST_URL).start()
-        expect(callCount).toEqual(1)
+        crawler.seed(TEST_URL)
+          .on('finish', () => {
+            expect(callCount).toEqual(1)
+            done()
+          })
+          .start()
       })
 
-      it('is never called if the contentType does not match a regex', () => {
+      it('is never called if the contentType does not match a regex', done => {
         let callCount = 0
 
         crawler.addApp({
@@ -386,8 +402,12 @@ describe('Crawler', () => {
           }
         })
 
-        crawler.seed(TEST_URL).start()
-        expect(callCount).toEqual(1)
+        crawler.seed(TEST_URL)
+          .on('finish', () => {
+            expect(callCount).toEqual(1)
+            done()
+          })
+          .start()
       })
     })
   })
