@@ -16,14 +16,6 @@ const callAppPreRequestsInSeries = (series, [params, appInterface]) => Promise.a
 export default class Crawler extends EventEmitter {
   constructor ({
     /**
-     * Defines how much connections are allowed per domain
-     */
-    connectionsPerDomain = 1,
-    /**
-     * Defines how many milliseconds we should wait before hammering the same domain
-     */
-    throttlePerDomain = 1000,
-    /**
      * Could be a list of userAgents, that the agents will be rotated
      */
     userAgent = 'AwesomeSearchBot',
@@ -56,8 +48,6 @@ export default class Crawler extends EventEmitter {
   } = {}) {
     super()
     this.config = config
-    this.connectionsPerDomain = connectionsPerDomain
-    this.throttlePerDomain = throttlePerDomain
     this.requestOptions = requestOptions
     this.userAgent = userAgent
     this.reporter = reporter
