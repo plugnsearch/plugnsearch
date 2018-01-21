@@ -4,23 +4,12 @@ import request from 'request'
 import cheerio from 'cheerio'
 import isArray from 'lodash/isArray'
 
+import checkContentType from './utils/checkContentType'
 import SimpleURLQueue from './SimpleURLQueue'
 import Reporter from './Reporter'
 
-const appUsesContentType = (app, contentType) => {
-  if (!app.contentType) return true
-
-  if (typeof app.contentType === 'string') return app.contentType === contentType
-
-  if (isArray(app.contentType)) return app.contentType.indexOf(contentType) !== -1
-
-  if (app.contentType.constructor === RegExp) return app.contentType.test(contentType)
-
-  return false
-}
-
-const callAppPreRequestsInSeries = (series, params) => Promise.all([series.reduce(
-  (memo, app) => memo.then(() => app.preRequest(params)),
+const callAppPreRequestsInSeries = (series, [params, appInterface]) => Promise.all([series.reduce(
+  (memo, app) => memo.then(() => app.preRequest(params, appInterface)),
   Promise.resolve([])
 )])
 
@@ -112,13 +101,16 @@ export default class Crawler extends EventEmitter {
     this.runPrequests(this.createRequestOptions(url))
       // if prerequests errors out, note that down and go on
       .catch(err => {
-        this.reporter.report(url, 'error', {
-          type: 'AppError',
-          message: `preRequest method failed because of ${err.toString()}`,
-          stackTrace: StackTraceParser.parse(err.stack).slice(0, 1).map(line => (
-            `at ${line.file}:${line.lineNumber}:${line.column}`
-          )).join('/n')
-        })
+        // If error has no name it probably is totally uninteresting to log
+        if (err && err.name) {
+          this.reporter.report(url, 'error', {
+            type: 'AppError',
+            message: `preRequest method failed because of ${err.toString()}`,
+            stackTrace: StackTraceParser.parse(err.stack).slice(0, 1).map(line => (
+              `at ${line.file}:${line.lineNumber}:${line.column}`
+            )).join('/n')
+          })
+        }
         this.tick()
       })
       // Do the real request
@@ -150,7 +142,10 @@ export default class Crawler extends EventEmitter {
   runPrequests (requestOptions) {
     const preRequests = this.apps
       .filter(app => app.preRequest)
-    return callAppPreRequestsInSeries(preRequests, requestOptions)
+    const appInterface = {
+      report: (type, data) => this.reporter.report(requestOptions.uri, type, data)
+    }
+    return callAppPreRequestsInSeries(preRequests, [requestOptions, appInterface])
       // resolve with the final request options
       .then(() => requestOptions)
   }
@@ -169,7 +164,7 @@ export default class Crawler extends EventEmitter {
       response
     }
     return Promise.all(this.apps.filter(app => app.process).map(app => {
-      if (!appUsesContentType(app, params.contentType)) {
+      if (!checkContentType(app.contentType, params.contentType)) {
         return Promise.resolve()
       }
       if (!app.noCheerio && !$) {
