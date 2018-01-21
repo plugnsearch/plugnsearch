@@ -68,32 +68,6 @@ describe('Crawler', () => {
       .start()
   })
 
-  it('we can set multiple userAgents it uses and cycles through', done => {
-    crawler = new Crawler({ userAgent: ['Botty', 'GreatBot', 'VeryNiceBotIndeed'] })
-    crawler.seed(['http://localhost/item1', 'http://localhost/item2', 'http://localhost/item3'])
-      .on('finish', () => {
-        expect(calledOptions[0]).toEqual(expect.objectContaining({
-          headers: {
-            'User-Agent': 'Botty'
-          }
-        }))
-
-        expect(calledOptions[1]).toEqual(expect.objectContaining({
-          headers: {
-            'User-Agent': 'GreatBot'
-          }
-        }))
-
-        expect(calledOptions[2]).toEqual(expect.objectContaining({
-          headers: {
-            'User-Agent': 'VeryNiceBotIndeed'
-          }
-        }))
-        done()
-      })
-      .start()
-  })
-
   describe('app processing', () => {
     const TEST_URL = 'http://somewhere.com'
     let exampleHTML

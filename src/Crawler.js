@@ -1,12 +1,9 @@
 import EventEmitter from 'events'
 import StackTraceParser from 'stacktrace-parser'
-// import path from 'path'
-// import { spawn } from 'child_process'
 import request from 'request'
 import cheerio from 'cheerio'
 import isArray from 'lodash/isArray'
 
-// import linkListToDomains from './utils/linkListToDomains'
 import SimpleURLQueue from './SimpleURLQueue'
 import Reporter from './Reporter'
 
@@ -22,9 +19,8 @@ const appUsesContentType = (app, contentType) => {
   return false
 }
 
-const callPromisesInSeries = (series, params) => Promise.all([series.reduce(
-  // (m, p) => m.then(v => Promise.all([...v, p()])),
-  (memo, promise) => memo.then(() => promise(params)),
+const callAppPreRequestsInSeries = (series, params) => Promise.all([series.reduce(
+  (memo, app) => memo.then(() => app.preRequest(params)),
   Promise.resolve([])
 )])
 
@@ -63,9 +59,14 @@ export default class Crawler extends EventEmitter {
      * The Reporter should implement a report method, that we use to post useful infos
      * about crawled pages
      */
-    reporter = new Reporter()
+    reporter = new Reporter(),
+    /**
+     * More config that can be passed through to app
+     */
+    ...config
   } = {}) {
     super()
+    this.config = config
     this.connectionsPerDomain = connectionsPerDomain
     this.throttlePerDomain = throttlePerDomain
     this.requestOptions = requestOptions
@@ -77,8 +78,18 @@ export default class Crawler extends EventEmitter {
     this.queue = queue
   }
 
+  /**
+   * Add an app to the crawler.
+   * It can be either an plain object, having app specific method,
+   * a instance of a class having the same methods, or
+   * a factory method, that gets the config of the crawler to init your app
+   */
   addApp (app) {
-    this.apps.push(app)
+    if (typeof app === 'function') {
+      this.apps.push(app(this.config))
+    } else {
+      this.apps.push(app)
+    }
     return this
   }
 
@@ -138,9 +149,8 @@ export default class Crawler extends EventEmitter {
   // @private
   runPrequests (requestOptions) {
     const preRequests = this.apps
-      .map(app => app.preRequest)
-      .filter(x => x)
-    return callPromisesInSeries(preRequests, requestOptions)
+      .filter(app => app.preRequest)
+    return callAppPreRequestsInSeries(preRequests, requestOptions)
       // resolve with the final request options
       .then(() => requestOptions)
   }
