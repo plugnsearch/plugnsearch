@@ -3,8 +3,6 @@ import Crawler from '../src/Crawler'
 import Reporter from '../src/Reporter'
 
 let mockRequest = jest.fn()
-// jest.mock('request-promise-native', () => mockRequest)
-// jest.mock('request', () => (options) => Promise.resolve(mockRequest(options)))
 jest.mock('request', () => (...args) => mockRequest.apply(null, args))
 
 describe('Crawler', () => {
@@ -201,6 +199,28 @@ describe('Crawler', () => {
           done()
         })
         .start()
+    })
+
+    describe('#addApp', () => {
+      it('can be also a function that receives additional config parameters', done => {
+        crawler = new Crawler({
+          userAgent: 'Somebot',
+          foo: 'bar'
+        })
+        let callCount = 0
+        const spy = jest.fn(() => ({
+          process: () => { ++callCount }
+        }))
+        crawler.addApp(spy)
+
+        expect(spy).toHaveBeenCalledWith({ foo: 'bar' })
+        crawler.seed(TEST_URL)
+          .on('finish', () => {
+            expect(callCount).toEqual(1)
+            done()
+          })
+          .start()
+      })
     })
 
     describe('before the request', () => {
