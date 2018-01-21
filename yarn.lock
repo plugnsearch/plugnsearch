@@ -3806,6 +3806,10 @@ object.omit@^2.0.0:
     for-own "^0.1.4"
     is-extendable "^0.1.1"
 
+occurences@^2.2.2:
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/occurences/-/occurences-2.2.2.tgz#76982e1b926ef0a3c4917e7ff90eb2fb2fdd21c0"
+
 on-finished@~2.3.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/on-finished/-/on-finished-2.3.0.tgz#20f1336481b083cd75337992a16971aa2d906947"

@@ -3,7 +3,13 @@ import fs from 'fs'
 import path from 'path'
 import winston from 'winston'
 
-import App from './apps/linkDataExtractor'
+// import App from './apps/linkDataExtractor'
+import ThrottleRequests from './middlewares/ThrottleRequests'
+import OnlyDownloadSpecificTypes from './middlewares/OnlyDownloadSpecificTypes'
+import DomainBlacklist from './middlewares/DomainBlacklist'
+import ExpandOnlyHttpLinks from './middlewares/ExpandOnlyHttpLinks'
+import MetaDataExtractor from './apps/MetaDataExtractor'
+import App from './apps/KeywordExtractor'
 
 let EXIT_REASON = null
 
@@ -26,30 +32,51 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 const SEED_URLS = [
-  'http://localhost:8000/recursive_testpage2.html'
+  'http://johanneszeiske.de'
+  // `http://johanneszeiske.de/Aktuelles;focus=CMTOI_de_dtag_hosting_hpcreator_widget_Video_17928316$3atheDownloader_122624&path=download_129647.action&frame=CMTOI_de_dtag_hosting_hpcreator_widget_Video_17928316$3atheDownloader_122624?range=true`
+  // 'https://www.heutetanzen.de'
+  // 'http://localhost:8000/recursive_testpage2.html'
   // 'http://www.tanzschule-stender.de',
   // 'https://www.tanzschule-gutmann.de/'
 ]
 
 const crawler = new Crawler({
   logger,
-  name: 'websearch/1.0',
-  connectionsPerDomain: 1,
-  throttlePerDomain: 1000 // ms
+  name: 'plugnsearch/1.0',
+  requestOptions: {
+    rejectUnauthorized: false
+  },
+  blacklistedDomains: `youtube.com amazon. dancesocially.com heutetanzen.de vimeo immobilien.hamburg.de immowelt.de facebook.com linkedin.com xing.com`,
+  keywords: `
+    dance dancing
+    tanz tanzen tanzveranstaltung veranstaltung veranstaltungen
+    tanzparties party tanzparty
+    event events
+    termine kalendar calendar
+  `.split(' ')
 })
 crawler
-  .crawl(SEED_URLS, new App())
-  .then(result => {
+  .addApp(config => new DomainBlacklist(config))
+  .addApp({ preRequest: (requestOptions) => { console.log(requestOptions.uri) } })
+  .addApp(new OnlyDownloadSpecificTypes({ onlySpecificContentTypes: /html/ }))
+  .addApp(new ThrottleRequests({ throttle: 300 }))
+  .addApp(new MetaDataExtractor())
+  .addApp(new ExpandOnlyHttpLinks())
+  .addApp(config => new App(config))
+  .seed(SEED_URLS)
+  .on('finish', result => {
     logger.info('Nothing left todo. Goodbye!')
     process.exit(0)
   })
+  .start()
 
-process.on('exit', () => {
+process.on('exit', (...args) => {
   const filename = `${Date.now()}.json`
   logger.info(`about to leave… saving data to 'results/${filename}'`)
   fs.writeFileSync(path.join(__dirname, '../results', filename), JSON.stringify({
     reason: EXIT_REASON || 'finished',
-    ...crawler.report()
+    ...crawler.report(),
+    linksOpen: crawler.queue.urlsTodo
   }, null, 2))
   process.exit(0)
 })
