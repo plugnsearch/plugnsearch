@@ -112,7 +112,7 @@ describe('Crawler', () => {
       crawler = new Crawler()
     })
 
-    it('sends page body, response headers and url to process method of given app', () => {
+    it('sends page body, response headers and url to process method of given app', done => {
       crawler.addApp({
         process: ({ url, body, headers }) => {
           expect(url).toEqual(TEST_URL)
@@ -120,26 +120,32 @@ describe('Crawler', () => {
           expect(headers).toEqual(headers)
         }
       })
-      crawler.seed(TEST_URL).start()
+      crawler.seed(TEST_URL)
+        .on('finish', () => done())
+        .start()
     })
 
-    it('passes contentType and statusCode to apps process as well', () => {
+    it('passes contentType and statusCode to apps process as well', done => {
       crawler.addApp({
         process: ({ contentType, statusCode }) => {
           expect(contentType).toEqual('text/html')
           expect(statusCode).toEqual(202)
         }
       })
-      crawler.seed(TEST_URL).start()
+      crawler.seed(TEST_URL)
+        .on('finish', () => done())
+        .start()
     })
 
-    it('passes the reporter to the process method', () => {
+    it('passes the reporter to the process method', done => {
       crawler.addApp({
         process: ({ report }) => {
           expect(typeof report).toEqual('function')
         }
       })
-      crawler.seed(TEST_URL).start()
+      crawler.seed(TEST_URL)
+        .on('finish', () => done())
+        .start()
     })
 
     it('passes a queueUrls method that can be used to path further links', done => {
@@ -163,17 +169,19 @@ describe('Crawler', () => {
         .start()
     })
 
-    it('also passes jQuery like interface (using cheerio) to process method', () => {
+    it('also passes jQuery like interface (using cheerio) to process method', done => {
       exampleHTML = '<html><body><h1>Hello World!</h1></body></html>'
       crawler.addApp({
         process: ({ $ }) => {
           expect($('h1').html()).toEqual('Hello World!')
         }
       })
-      crawler.seed(TEST_URL).start()
+      crawler.seed(TEST_URL)
+        .on('finish', () => done())
+        .start()
     })
 
-    it('does not provide jQuery interface when no app is asking for it', () => {
+    it('does not provide jQuery interface when no app is asking for it', done => {
       exampleHTML = '<html><body><h1>Hello World!</h1></body></html>'
       crawler.addApp({
         contentType: 'html',
@@ -183,7 +191,9 @@ describe('Crawler', () => {
           expect($).toBeUndefined()
         }
       })
-      crawler.seed(TEST_URL).start()
+      crawler.seed(TEST_URL)
+        .on('finish', () => done())
+        .start()
     })
 
     it('process methods can return a promise', done => {
