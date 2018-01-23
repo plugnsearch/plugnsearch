@@ -1,5 +1,5 @@
 /* eslint-env jest */
-import Reporter from '../src/Reporter'
+import Reporter from '../../src/reporters/JSONReporter'
 
 describe('Reporter', () => {
   let reporter

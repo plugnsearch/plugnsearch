@@ -1,6 +1,6 @@
 /* eslint-env jest */
 import Crawler from '../src/Crawler'
-import Reporter from '../src/Reporter'
+import Reporter from '../src/reporters/JSONReporter'
 
 let mockRequest = jest.fn()
 jest.mock('request', () => (...args) => mockRequest.apply(null, args))

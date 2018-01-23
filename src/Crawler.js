@@ -6,7 +6,7 @@ import isArray from 'lodash/isArray'
 
 import checkContentType from './utils/checkContentType'
 import SimpleURLQueue from './SimpleURLQueue'
-import Reporter from './Reporter'
+import JSONReporter from './reporters/JSONReporter'
 
 const callAppPreRequestsInSeries = (series, [params, appInterface]) => Promise.all([series.reduce(
   (memo, app) => memo.then(() => app.preRequest(params, appInterface)),
@@ -40,7 +40,7 @@ export default class Crawler extends EventEmitter {
      * The Reporter should implement a report method, that we use to post useful infos
      * about crawled pages
      */
-    reporter = new Reporter(),
+    reporter = new JSONReporter(),
     /**
      * More config that can be passed through to app
      */
