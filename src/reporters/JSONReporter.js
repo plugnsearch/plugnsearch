@@ -1,3 +1,4 @@
+import isArray from 'lodash/isArray'
 
 export default class Reporter {
   constructor () {
@@ -10,10 +11,23 @@ export default class Reporter {
     }
 
     if (type) {
-      this.data[url][type] = typeof content === 'string' ? content : {
-        ...(this.data[url][type] || {}),
-        ...content
+      let value
+      switch (typeof content) {
+        case 'string':
+          // fall through
+        case 'number':
+          value = content
+          break
+        default:
+          value = isArray(content) ? [
+            ...(this.data[url][type] || []),
+            ...content
+          ] : {
+            ...(this.data[url][type] || {}),
+            ...content
+          }
       }
+      this.data[url][type] = value
     }
   }
 

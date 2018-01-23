@@ -30,4 +30,30 @@ describe('Reporter', () => {
       }
     })
   })
+
+  it('can also report numbers', () => {
+    reporter.report('http://something.com', 'foo', 50)
+    reporter.report('http://something.com', 'bar', 70)
+    reporter.report('http://something.com', 'bar', 23)
+
+    expect(reporter.toJson()).toEqual({
+      'http://something.com': {
+        foo: 50,
+        bar: 23
+      }
+    })
+  })
+
+  it('can also report arrays', () => {
+    reporter.report('http://something.com', 'foo', [50])
+    reporter.report('http://something.com', 'bar', [70])
+    reporter.report('http://something.com', 'bar', ['23'])
+
+    expect(reporter.toJson()).toEqual({
+      'http://something.com': {
+        foo: [50],
+        bar: [70, '23']
+      }
+    })
+  })
 })
