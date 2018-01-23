@@ -105,7 +105,9 @@ export default class Crawler extends EventEmitter {
       })
       // Do the real request
       .then(requestOptions => {
-        this.createRequest(requestOptions)
+        // This means, we just catched an error in preRequest
+        if (!requestOptions) return;
+        return this.createRequest(requestOptions)
         // run all the process methods of registered apps
         .then(response => this.runApps(response))
         // make sure URL is noted in report

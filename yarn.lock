@@ -4518,6 +4518,10 @@ ripemd160@^2.0.0, ripemd160@^2.0.1:
     hash-base "^2.0.0"
     inherits "^2.0.1"
 
+robots-parser@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/robots-parser/-/robots-parser-1.0.1.tgz#79e32e3e5cb4066de501404207a8eb1232970020"
+
 run-async@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/run-async/-/run-async-0.1.0.tgz#c8ad4a5e110661e402a7d21b530e009f25f8e389"
