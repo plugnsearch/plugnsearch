@@ -102,8 +102,9 @@ describe('apps/ThrottleRequests', () => {
       mockRequest.mockClear()
     })
 
-    it('we can set multiple userAgents the crawler  cycles through', done => {
-      crawler = new Crawler({ userAgents: ['Botty', 'GreatBot', 'VeryNiceBotIndeed'] })
+    // no clue how to test that properly
+    xit('does not call a page more often then delay says', (done) => {
+      crawler = new Crawler({ throttle: 1000 })
       crawler.addApp(config => new ThrottleRequests(config))
       crawler.seed(['http://localhost/item1', 'http://localhost/item2', 'http://localhost/item3'])
         .on('finish', () => {
@@ -127,6 +128,10 @@ describe('apps/ThrottleRequests', () => {
           done()
         })
         .start()
+
+      // console.log(calledOptions);
+      // clock.tick(1000)
+      // console.log(calledOptions);
     })
   })
 })
