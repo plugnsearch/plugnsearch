@@ -40,14 +40,14 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
     mockRequest.mockClear()
   })
 
-  it('sends out a HEAD request to given url', done => {
+  it('sends out a HEAD request to given url', () => {
     app = new OnlyDownloadSpecificTypes({})
-    app.preRequest(requestOptions, appInterface)
+    expect.assertions(3)
+    return app.preRequest(requestOptions, appInterface)
       .then(() => {
         expect(calledOptions.length).toEqual(1)
         expect(calledOptions[0].uri).toEqual(requestOptions.uri)
         expect(calledOptions[0].method).toEqual('HEAD')
-        done()
       })
   })
 
@@ -59,31 +59,21 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
         })
       })
 
-      it('sends out a HEAD request to given url and resolves if matches', done => {
-        app.preRequest(requestOptions, appInterface)
-          .then(() => {
-            done()
-          })
-          .catch(() => {
-            expect('this').toEqual('not have been called')
-            done()
-          })
+      it('sends out a HEAD request to given url and resolves if matches', () => {
+        return expect(app.preRequest(requestOptions, appInterface))
+          .resolves.toEqual()
       })
 
-      it('sends out a HEAD request to given url and rejects if it does not match', done => {
+      it('sends out a HEAD request to given url and rejects if it does not match', () => {
         resultContentType = 'text/xhtml'
 
-        app.preRequest(requestOptions, appInterface)
-          .then(() => {
-            expect('this').toEqual('not have been called')
-            done()
-          })
+        expect.assertions(1)
+        return app.preRequest(requestOptions, appInterface)
           .catch(() => {
             expect(appInterface.report).toHaveBeenCalledWith(
               'skipped',
               'The Content-Type "text/xhtml" does not match allowed content-type. Resource will be skipped.'
             )
-            done()
           })
       })
     })
@@ -95,33 +85,23 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
         })
       })
 
-      it('sends out a HEAD request to given url and resolves if matches', done => {
+      it('sends out a HEAD request to given url and resolves if matches', () => {
         resultContentType = 'text/xhtml'
 
-        app.preRequest(requestOptions, appInterface)
-          .then(() => {
-            done()
-          })
-          .catch(() => {
-            expect('this').toEqual('not have been called')
-            done()
-          })
+        return expect(app.preRequest(requestOptions, appInterface))
+          .resolves.toEqual()
       })
 
-      it('sends out a HEAD request to given url and rejects if it does not match', done => {
+      it('sends out a HEAD request to given url and rejects if it does not match', () => {
         resultContentType = 'audio/mp3'
 
-        app.preRequest(requestOptions, appInterface)
-          .then(() => {
-            expect('this').toEqual('not have been called')
-            done()
-          })
+        expect.assertions(1)
+        return app.preRequest(requestOptions, appInterface)
           .catch(() => {
             expect(appInterface.report).toHaveBeenCalledWith(
               'skipped',
               'The Content-Type "audio/mp3" does not match allowed content-type. Resource will be skipped.'
             )
-            done()
           })
       })
     })
@@ -133,33 +113,23 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
         })
       })
 
-      it('sends out a HEAD request to given url and resolves if matches', done => {
+      it('sends out a HEAD request to given url and resolves if matches', () => {
         resultContentType = 'text/plain'
 
-        app.preRequest(requestOptions, appInterface)
-          .then(() => {
-            done()
-          })
-          .catch(() => {
-            expect('this').toEqual('not have been called')
-            done()
-          })
+        return expect(app.preRequest(requestOptions, appInterface))
+          .resolves.toEqual()
       })
 
-      it('sends out a HEAD request to given url and rejects if it does not match', done => {
+      it('sends out a HEAD request to given url and rejects if it does not match', () => {
         resultContentType = 'audio/mp3'
 
-        app.preRequest(requestOptions, appInterface)
-          .then(() => {
-            expect('this').toEqual('not have been called')
-            done()
-          })
+        expect.assertions(1)
+        return app.preRequest(requestOptions, appInterface)
           .catch(() => {
             expect(appInterface.report).toHaveBeenCalledWith(
               'skipped',
               'The Content-Type "audio/mp3" does not match allowed content-type. Resource will be skipped.'
             )
-            done()
           })
       })
     })

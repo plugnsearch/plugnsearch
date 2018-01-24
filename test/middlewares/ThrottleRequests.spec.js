@@ -67,19 +67,19 @@ describe('apps/ThrottleRequests', () => {
       app = new ThrottleRequests({})
     })
 
-    it('sends out the first request right away', done => {
-      app.preRequest(requestOptions)
-        .then(() => done())
+    it('sends out the first request right away', () => {
+      return expect(app.preRequest(requestOptions))
+        .resolves.toEqual()
     })
 
-    it('sends out all request right away', done => {
-      app.preRequest(requestOptions)
+    it('sends out all request right away', () => {
+      return expect(app.preRequest(requestOptions)
         .then(() => app.preRequest(requestOptions))
         .then(() => app.preRequest(requestOptions))
         .then(() => app.preRequest(requestOptions))
         .then(() => app.preRequest(requestOptions))
-        .then(() => app.preRequest(requestOptions))
-        .then(() => done())
+        .then(() => app.preRequest(requestOptions)))
+        .resolves.toEqual()
     })
   })
 

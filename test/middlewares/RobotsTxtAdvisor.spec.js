@@ -50,15 +50,9 @@ describe('apps/RobotsTxtAdvisor', () => {
     mockRequest.mockClear()
   })
 
-  it('does nothing if uri is broken', done => {
-    app.preRequest({ uri: 'something invalid' }, appInterface)
-      .then(() => {
-        expect('then').toEqual('not be called')
-        done()
-      })
-      .catch(() => {
-        done()
-      })
+  it('does nothing if uri is broken', () => {
+    return expect(app.preRequest({ uri: 'something invalid' }, appInterface))
+      .rejects.toEqual({})
   })
 
   it('requests the right robots.txt', () => {
