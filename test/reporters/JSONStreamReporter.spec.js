@@ -26,6 +26,16 @@ describe('Reporter', () => {
     } catch (e) {}
   })
 
+  it('writes valid JSON although empty', done => {
+    expect.assertions(1)
+    reporter.closeStream()
+      .then(() => {
+        const writtenData = JSON.parse(fs.readFileSync(filename, 'UTF-8'))
+        expect(writtenData.length).toEqual(0)
+        done()
+      })
+  })
+
   it('writes reported stuff directly into file as valid JSON', done => {
     const stubMeta = { foo: 'bar' }
     const stubMeta2 = { foo: 'fighters', cool: 'stuff' }
