@@ -1,9 +1,8 @@
 class UninterrstingError {}
 
 /**
- * This app is designed to reduce the amount of requests send out. It throttles
- * the send out requests to a maximum of one request per given time.
- * is defined through the Crawler `throttle` option
+ * This middleware allows to define a domain blacklist, and prohibits crawling of
+ * page of those domains.
  */
 export default class DomainBlacklist {
   name = 'DomainBlacklist'

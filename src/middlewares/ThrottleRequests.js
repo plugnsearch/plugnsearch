@@ -3,7 +3,7 @@ import util from 'util'
 const sleep = util.promisify(setTimeout)
 
 /**
- * This app is designed to reduce the amount of requests send out. It throttles
+ * This middleware reduces the amount of requests send out. It throttles
  * the send out requests to a maximum of one request per given time.
  * is defined through the Crawler `throttle` option
  */

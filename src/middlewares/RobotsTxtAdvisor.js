@@ -4,6 +4,10 @@ import robotsParser from 'robots-parser'
 
 class UninterestingError {}
 
+/**
+ * Reads the robots.txt file from a domain and heeds the crawling restrictions from
+ * that file.
+ */
 export default class RobotsTxtAdvisor {
   name = 'RobotsTxtAdvisor'
   noCheerio = true
