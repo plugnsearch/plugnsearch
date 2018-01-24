@@ -1,6 +1,6 @@
 /* eslint-env jest */
 import Crawler from '../../src/Crawler'
-import OnlyDownloadSpecificTypes from '../../src/middlewares/OnlyDownloadSpecificTypes'
+import OnlyDownloadSpecificTypes, { UninterestingError } from '../../src/middlewares/OnlyDownloadSpecificTypes'
 
 let mockRequest = jest.fn()
 jest.mock('request', () => (...args) => mockRequest.apply(null, args))
@@ -15,6 +15,7 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
   let resultContentType
 
   beforeEach(() => {
+    requestError = null
     resultContentType = 'text/html'
     getMockResponse = () => ({
       headers: {
@@ -161,6 +162,34 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
             done()
           })
       })
+    })
+  })
+
+  describe('on an errornous request', () => {
+    beforeEach(() => {
+      getMockResponse = () => ({
+        statusCode: 404,
+        statusMessage: 'Not Found',
+        headers: {
+          'content-type': 'plain/text'
+        }
+      })
+    })
+
+    it('logs a PageLoadError', () => {
+      expect.assertions(1)
+      return app.preRequest(requestOptions, appInterface)
+        .catch(() => {
+          expect(appInterface.report).toHaveBeenCalledWith(
+            'PageLoadError',
+            'Not Found (404)'
+          )
+        })
+    })
+
+    it('tells the app to not log anything more', () => {
+      return expect(app.preRequest(requestOptions, appInterface))
+        .rejects.toEqual(new UninterestingError())
     })
   })
 

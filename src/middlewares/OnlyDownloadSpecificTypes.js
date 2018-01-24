@@ -2,7 +2,7 @@ import request from 'request'
 
 import checkContentType from '../utils/checkContentType'
 
-class UninterestingError {}
+export class UninterestingError {}
 
 /**
  * This app sends out head requests before real requests are going out and checks if
@@ -28,14 +28,20 @@ export default class OnlyDownloadSpecificTypes {
           reject(err)
         } else {
           const contentType = response.headers['content-type']
-          if (checkContentType(this.appOptions.onlySpecificContentTypes, contentType)) {
-            resolve()
-          } else {
+          if (response.statusCode >= 400) {
+            report(
+              'PageLoadError',
+              `${response.statusMessage} (${response.statusCode})`
+            )
+            reject(new UninterestingError())
+          } else if (!checkContentType(this.appOptions.onlySpecificContentTypes, contentType)) {
             report(
               'skipped',
               `The Content-Type "${contentType}" does not match allowed content-type. Resource will be skipped.`
             )
             reject(new UninterestingError())
+          } else {
+            resolve()
           }
         }
       })
