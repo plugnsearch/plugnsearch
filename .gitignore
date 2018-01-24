@@ -2,3 +2,4 @@ results/
 node_modules/
 TODO.txt
 error.log
+.DS_Store
