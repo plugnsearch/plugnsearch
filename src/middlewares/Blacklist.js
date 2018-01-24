@@ -1,18 +1,17 @@
 class UninterrstingError {}
 
 /**
- * This middleware allows to define a domain blacklist, and prohibits crawling of
- * page of those domains.
+ * This middleware allows to define a blacklist for domains and urls.
+ * It prohibits crawling of any URL that matches its items.
  */
-export default class DomainBlacklist {
+export default class Blacklist {
   name = 'DomainBlacklist'
   noCheerio = true
 
   constructor (options) {
     // this.blacklist = options
-    this.blacklist = (options.blacklistedDomains || '')
-      .split(' ')
-      .map(text => new RegExp(text.replace('.', '\\.')))
+    this.blacklist = (options.blacklist || [])
+      .map(item => typeof item === 'string' ? new RegExp(item.replace('.', '\\.')) : item)
   }
 
   preRequest ({ uri }) {
