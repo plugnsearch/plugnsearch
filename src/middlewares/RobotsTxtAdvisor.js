@@ -17,21 +17,21 @@ export default class RobotsTxtAdvisor {
     this.memory = {}
   }
 
-  preRequest ({ uri, headers }, { report }) {
+  preRequest (url, { headers }, { report }) {
     try {
-      const { origin } = new URL(uri)
+      const { origin } = new URL(url.href)
       const txtUri = `${origin}/robots.txt`
       return this.fetchRobotsTxt(txtUri)
         .then(body => {
           const robots = robotsParser(txtUri, body)
-          if (!robots.isAllowed(uri, headers['User-Agent'])) {
+          if (!robots.isAllowed(url.href, headers['User-Agent'])) {
             if (this.logging) {
               report(
                 'skipped',
-                `Bot ${headers['User-Agent']} is disallowed from ${uri}`
+                `Bot ${headers['User-Agent']} is disallowed from ${url.href}`
               )
             }
-            throw new UninterestingError(`Bot ${headers['User-Agent']} is disallowed from ${uri}`)
+            throw new UninterestingError(`Bot ${headers['User-Agent']} is disallowed from ${url.href}`)
           }
         })
     } catch (e) {

@@ -12,7 +12,7 @@ export default class RotateUserAgent {
     this.index = 0
   }
 
-  preRequest (requestOptions) {
+  preRequest (url, requestOptions) {
     if (this.appOptions.userAgents && this.appOptions.userAgents.length) {
       requestOptions.headers['User-Agent'] = this.appOptions.userAgents[this.index]
       this.index = (this.index + 1) % this.appOptions.userAgents.length

@@ -1,7 +1,8 @@
-import { URL } from 'url'
 import EventEmitter from 'events'
 import normalizeUrl from 'normalize-url'
 import isArray from 'lodash/isArray'
+
+import URL from './URL'
 
 export default class SimpleURLQueue extends EventEmitter {
   urlsDone = []
@@ -12,22 +13,20 @@ export default class SimpleURLQueue extends EventEmitter {
     this.skipDuplicates = skipDuplicates
   }
 
-  queue (url) {
-    if (isArray(url)) {
-      return url.forEach(u => this.queue(u))
+  queue (href) {
+    if (isArray(href)) {
+      return href.forEach(u => this.queue(u))
     }
-    try {
-      new URL(url) // eslint-disable-line
-    } catch (e) {
-      throw new Error(`Queued parameter '${url}' is not a valid URL.`)
+    const url = new URL(href)
+    if (!url.isValid) {
+      throw new Error(`Queued parameter '${url.href}' is not a valid URL.`)
     }
-    const normalizedUrl = this.normalizeUrl(url)
     if (this.skipDuplicates &&
-      (this.urlsDone.indexOf(normalizedUrl) !== -1 || this.urlsTodo.indexOf(normalizedUrl) !== -1)) {
+      (this.urlsDone.indexOf(url.normalizedHref) !== -1 || this.urlsTodo.findIndex(u => u.normalizedHref === url.normalizedHref) !== -1)) {
       return
     }
 
-    this.urlsTodo.push(normalizedUrl)
+    this.urlsTodo.push(url)
   }
 
   normalizeUrl (url) {
@@ -38,7 +37,7 @@ export default class SimpleURLQueue extends EventEmitter {
   getNextUrl () {
     const url = this.urlsTodo.shift()
     if (!url) return null
-    this.urlsDone.push(url)
+    this.urlsDone.push(url.normalizedHref)
 
     if (this.urlsTodo.length === 0) {
       this.emit('empty')

@@ -14,8 +14,8 @@ export default class Blacklist {
       .map(item => typeof item === 'string' ? new RegExp(item.replace('.', '\\.')) : item)
   }
 
-  preRequest ({ uri }) {
-    if (this.blacklist.find(regex => regex.test(uri))) {
+  preRequest (url) {
+    if (this.blacklist.find(regex => regex.test(url.href))) {
       return Promise.reject(new UninterrstingError())
     } else {
       return Promise.resolve()

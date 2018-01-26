@@ -1,5 +1,6 @@
 /* eslint-env jest */
 import Crawler from '../../src/Crawler'
+import URL from '../../src/URL'
 import RobotsTxtAdvisor from '../../src/middlewares/RobotsTxtAdvisor'
 
 let mockRequest = jest.fn()
@@ -15,6 +16,7 @@ Disallow: /not-here/
 
 describe('apps/RobotsTxtAdvisor', () => {
   let app
+  let requestUrl
   let requestOptions
   let appInterface
   let calledOptions
@@ -36,8 +38,8 @@ describe('apps/RobotsTxtAdvisor', () => {
       calledOptions.push(options)
       cb(requestError, getMockResponse(options))
     })
+    requestUrl = new URL('http://localhost:8080/some/link')
     requestOptions = {
-      uri: 'http://localhost:8080/some/link',
       headers: {
         'User-Agent': 'foobot'
       }
@@ -51,12 +53,12 @@ describe('apps/RobotsTxtAdvisor', () => {
   })
 
   it('does nothing if uri is broken', () => {
-    return expect(app.preRequest({ uri: 'something invalid' }, appInterface))
+    return expect(app.preRequest(new URL('something invalid'), {}, appInterface))
       .rejects.toEqual({})
   })
 
   it('requests the right robots.txt', () => {
-    return expect(app.preRequest(requestOptions, appInterface)
+    return expect(app.preRequest(requestUrl, requestOptions, appInterface)
       .then(() => calledOptions[0]))
       .resolves
       .toEqual(expect.objectContaining({
@@ -65,19 +67,22 @@ describe('apps/RobotsTxtAdvisor', () => {
   })
 
   it('rejects request if bot is disallowed', () => {
-    return expect(app.preRequest({
-      ...requestOptions,
-      uri: 'http://localhost:8080/not-here/somewhere'
-    }, appInterface)).rejects.toBeTruthy()
+    return expect(app.preRequest(
+      new URL('http://localhost:8080/not-here/somewhere'),
+      requestOptions,
+      appInterface)
+    ).rejects.toBeTruthy()
   })
 
   it('resolves if bot is allowed', () => {
-    return expect(app.preRequest({
-      uri: 'http://localhost:8080/not-here/somewhere',
-      headers: {
-        'User-Agent': 'googlebot'
-      }
-    }, appInterface)).resolves.toBeUndefined()
+    return expect(app.preRequest(
+      new URL('http://localhost:8080/not-here/somewhere'),
+      {
+        headers: {
+          'User-Agent': 'googlebot'
+        }
+      }, appInterface)
+    ).resolves.toBeUndefined()
   })
 
   describe('if configured to log', () => {
@@ -86,10 +91,11 @@ describe('apps/RobotsTxtAdvisor', () => {
     })
 
     it('rejects and logs the skip reason', () => {
-      return expect(app.preRequest({
-        ...requestOptions,
-        uri: 'http://localhost:8080/not-here/somewhere'
-      }, appInterface).catch(() => appInterface.report)).resolves.toHaveBeenCalledWith(
+      return expect(app.preRequest(
+        new URL('http://localhost:8080/not-here/somewhere'),
+        requestOptions,
+        appInterface
+      ).catch(() => appInterface.report)).resolves.toHaveBeenCalledWith(
         'skipped',
         `Bot foobot is disallowed from http://localhost:8080/not-here/somewhere`
       )
@@ -102,27 +108,19 @@ describe('apps/RobotsTxtAdvisor', () => {
     })
 
     it('simply resolves', () => {
-      return expect(app.preRequest({
-        ...requestOptions,
-        uri: 'http://localhost:8080/not-here/somewhere'
-      }, appInterface)).resolves.toBeUndefined()
+      return expect(app.preRequest(
+        new URL('http://localhost:8080/not-here/somewhere'),
+        requestOptions,
+        appInterface)
+      ).resolves.toBeUndefined()
     })
   })
 
   it('only does one request and remembers the robots txt for same domain', () => {
-    return expect(app.preRequest({
-      ...requestOptions,
-      uri: 'http://localhost:8080/not-hesre/somewhere'
-    }, appInterface)
-    .then(app.preRequest({
-      ...requestOptions,
-      uri: 'http://localhost:8080/somewhere'
-    }, appInterface))
-    .then(app.preRequest({
-      ...requestOptions,
-      uri: 'http://localhost:8079/somewhere-else'
-    }, appInterface))
-    .then(app.preRequest(requestOptions, appInterface))
+    return expect(app.preRequest(new URL('http://localhost:8080/not-hesre/somewhere'), requestOptions, appInterface)
+    .then(app.preRequest(new URL('http://localhost:8080/somewhere'), requestOptions, appInterface))
+    .then(app.preRequest(new URL('http://localhost:8079/somewhere-else'), requestOptions, appInterface))
+    .then(app.preRequest(new URL('http://localhost:8079/somewhere-else'), requestOptions, appInterface))
     .then(() => calledOptions.length))
     .resolves.toEqual(2)
   })

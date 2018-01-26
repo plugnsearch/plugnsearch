@@ -8,8 +8,8 @@ import checkContentType from './utils/checkContentType'
 import SimpleURLQueue from './SimpleURLQueue'
 import JSONReporter from './reporters/JSONReporter'
 
-const callAppPreRequestsInSeries = (series, [params, appInterface]) => Promise.all([series.reduce(
-  (memo, app) => memo.then(() => app.preRequest(params, appInterface)),
+const callAppPreRequestsInSeries = (series, preRequestParams) => Promise.all([series.reduce(
+  (memo, app) => memo.then(() => app.preRequest.apply(app, preRequestParams)),
   Promise.resolve([])
 )])
 
@@ -88,7 +88,7 @@ export default class Crawler extends EventEmitter {
       this.emit('finish', this.reporter)
       return
     }
-    this.runPrequests(this.createRequestOptions(url))
+    this.runPrequests(url, this.createRequestOptions())
       // if prerequests errors out, note that down and go on
       .catch(err => {
         // If error has no name it probably is totally uninteresting to log
@@ -106,7 +106,7 @@ export default class Crawler extends EventEmitter {
       // Do the real request
       .then(requestOptions => {
         // This means, we just catched an error in preRequest
-        if (!requestOptions) return;
+        if (!requestOptions) return
         return this.createRequest(requestOptions)
         // run all the process methods of registered apps
         .then(response => this.runApps(response))
@@ -119,9 +119,8 @@ export default class Crawler extends EventEmitter {
   }
 
   // @private
-  createRequestOptions (uri) {
+  createRequestOptions (url) {
     return {
-      uri,
       ...this.requestOptions,
       headers: {
         'User-Agent': this.showUserAgent(),
@@ -131,15 +130,19 @@ export default class Crawler extends EventEmitter {
   }
 
   // @private
-  runPrequests (requestOptions) {
+  runPrequests (url, requestOptions) {
     const preRequests = this.apps
       .filter(app => app.preRequest)
     const appInterface = {
-      report: (type, data) => this.reporter.report(requestOptions.uri, type, data)
+      report: (type, data) => this.reporter.report(url.normalizedHref, type, data)
     }
-    return callAppPreRequestsInSeries(preRequests, [requestOptions, appInterface])
+    return callAppPreRequestsInSeries(preRequests, [url, requestOptions, appInterface])
       // resolve with the final request options
-      .then(() => requestOptions)
+      // Create the real request Options object now
+      .then(() => ({
+        ...requestOptions,
+        uri: url.normalizedHref
+      }))
   }
 
   // @private

@@ -1,5 +1,6 @@
 /* eslint-env jest */
 import Crawler from '../src/Crawler'
+import URL from '../src/URL'
 import Reporter from '../src/reporters/JSONReporter'
 
 let mockRequest = jest.fn()
@@ -230,34 +231,50 @@ describe('Crawler', () => {
     })
 
     describe('before the request', () => {
+      it('the preRequest becomes additional url data', done => {
+        let receivedUrl
+        crawler.addApp({
+          preRequest: (url) => {
+            receivedUrl = url
+          },
+
+          process: () => {}
+        })
+        const urlData = { href: TEST_URL, foo: 'bar' }
+        crawler.seed(urlData)
+          .on('finish', () => {
+            expect(receivedUrl).toEqual(expect.objectContaining(urlData))
+            done()
+          })
+          .start()
+      })
+
       it('we can add a preRequest callback to change request options', done => {
         let callCount = 0
         crawler.addApp({
-          preRequest: (options) => {
+          preRequest: (url) => {
             ++callCount
-            expect(options.uri).toEqual(TEST_URL)
-            options.uri += '?foo'
+            url.update(url + `?foo`)
           },
 
           process: ({ url }) => {
-            expect(url).toEqual(TEST_URL + '?foo?bar')
+            expect(url).toEqual(TEST_URL + '/?bar&foo')
           }
         })
         crawler.addApp({
-          preRequest: (options) => {
+          preRequest: (url) => {
             callCount += 10
-            expect(options.uri).toEqual(TEST_URL + '?foo')
-            options.uri += '?bar'
+            url.update(url + `&bar`)
           },
 
           process: ({ url }) => {
-            expect(url).toEqual(TEST_URL + '?foo?bar')
+            expect(url).toEqual(TEST_URL + '/?bar&foo')
           }
         })
         crawler.seed(TEST_URL)
           .on('finish', reporter => {
             expect(callCount).toEqual(11)
-            expect(reporter.toJson()[TEST_URL + '?foo?bar']).toEqual({})
+            expect(reporter.toJson()[TEST_URL + '/?bar&foo']).toEqual({})
             done()
           })
           .start()
@@ -291,34 +308,34 @@ describe('Crawler', () => {
       it('can be used to make a preflight request (so it can return a promise)', done => {
         let callCount = 0
         crawler.addApp({
-          preRequest: (options) => {
-            expect(options.uri).toEqual(TEST_URL)
-            options.uri += '?foo'
+          preRequest: (url) => {
+            expect(url.href).toEqual(TEST_URL)
+            url.update(`${url.href}?foo`)
             ++callCount
             return Promise.resolve()
           },
 
           process: ({ url }) => {
-            expect(url).toEqual(TEST_URL + '?foo?bar')
+            expect(url).toEqual(TEST_URL + '/?foo?bar')
           }
         })
         crawler.addApp({
-          preRequest: (options) => {
-            expect(options.uri).toEqual(TEST_URL + '?foo')
-            options.uri += '?bar'
+          preRequest: (url) => {
+            expect(url.href).toEqual(TEST_URL + '?foo')
+            url.update(`${url.href}?bar`)
             callCount += 10
             return Promise.resolve()
           },
 
           process: ({ url }) => {
-            expect(url).toEqual(TEST_URL + '?foo?bar')
+            expect(url).toEqual(TEST_URL + '/?foo?bar')
           }
         })
         crawler.seed(TEST_URL)
           .on('finish', reporter => {
             expect(callCount).toEqual(11)
             expect(reporter.toJson()[TEST_URL]).toBeUndefined()
-            expect(reporter.toJson()[TEST_URL + '?foo?bar']).toEqual({})
+            expect(reporter.toJson()[TEST_URL + '/?foo?bar']).toEqual({})
             done()
           })
           .start()

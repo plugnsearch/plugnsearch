@@ -1,5 +1,6 @@
 /* eslint-env jest */
 import Crawler from '../../src/Crawler'
+import URL from '../../src/URL'
 import RotateUserAgent from '../../src/middlewares/RotateUserAgent'
 
 let mockRequest = jest.fn()
@@ -7,9 +8,11 @@ jest.mock('request', () => (...args) => mockRequest.apply(null, args))
 
 describe('apps/RotateUserAgent', () => {
   let app
+  let requestUrl
   let requestOptions
 
   beforeEach(() => {
+    requestUrl = new URL('http://localhost')
     requestOptions = {
       headers: {
         'User-Agent': 'foobot'
@@ -19,14 +22,14 @@ describe('apps/RotateUserAgent', () => {
 
   it('uses always the same userAgent if userAgents is not defined', () => {
     app = new RotateUserAgent({})
-    app.preRequest(requestOptions)
+    app.preRequest(requestUrl, requestOptions)
 
     expect(requestOptions.headers['User-Agent']).toEqual('foobot')
   })
 
   it('uses always the same userAgent if userAgents is just empty', () => {
     app = new RotateUserAgent({ userAgents: [] })
-    app.preRequest(requestOptions)
+    app.preRequest(requestUrl, requestOptions)
 
     expect(requestOptions.headers['User-Agent']).toEqual('foobot')
   })
@@ -34,16 +37,16 @@ describe('apps/RotateUserAgent', () => {
   it('cycles through userAgent if userAgents are defined', () => {
     app = new RotateUserAgent({ userAgents: ['A', 'AwesomeSearchBot', 'Botty'] })
 
-    app.preRequest(requestOptions)
+    app.preRequest(requestUrl, requestOptions)
     expect(requestOptions.headers['User-Agent']).toEqual('A')
 
-    app.preRequest(requestOptions)
+    app.preRequest(requestUrl, requestOptions)
     expect(requestOptions.headers['User-Agent']).toEqual('AwesomeSearchBot')
 
-    app.preRequest(requestOptions)
+    app.preRequest(requestUrl, requestOptions)
     expect(requestOptions.headers['User-Agent']).toEqual('Botty')
 
-    app.preRequest(requestOptions)
+    app.preRequest(requestUrl, requestOptions)
     expect(requestOptions.headers['User-Agent']).toEqual('A')
   })
 

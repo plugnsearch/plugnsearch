@@ -1,5 +1,6 @@
 /* eslint-env jest */
 import Crawler from '../../src/Crawler'
+import URL from '../../src/URL'
 import Blacklist from '../../src/middlewares/Blacklist'
 
 let mockRequest = jest.fn()
@@ -7,10 +8,6 @@ jest.mock('request', () => (...args) => mockRequest.apply(null, args))
 
 describe('middlewares/Blacklist', () => {
   let app
-  let requestOptions
-
-  beforeEach(() => {
-  })
 
   describe('resolves with any domain if blacklist is empty', () => {
     beforeEach(() => {
@@ -18,7 +15,7 @@ describe('middlewares/Blacklist', () => {
     })
 
     it('resolves with any domain', () => {
-      return expect(app.preRequest({ uri: 'http://something-great.com' }))
+      return expect(app.preRequest(new URL('http://something-great.com')))
         .resolves.toEqual()
     })
   })
@@ -35,27 +32,27 @@ describe('middlewares/Blacklist', () => {
     })
 
     it('resolves with another domain', () => {
-      return expect(app.preRequest({ uri: 'http://something-great.com/is-awesome' }))
+      return expect(app.preRequest(new URL('http://something-great.com/is-awesome')))
         .resolves.toEqual()
     })
 
     it('rejects if a string matches', () => {
-      return expect(app.preRequest({ uri: 'http://www.heutetanzen.de' }))
+      return expect(app.preRequest(new URL('http://www.heutetanzen.de')))
         .rejects.toEqual({})
     })
 
     it('is not ambigious', () => {
-      return expect(app.preRequest({ uri: 'http://amazon.com/is-awesome' }))
+      return expect(app.preRequest(new URL('http://amazon.com/is-awesome')))
         .resolves.toEqual()
     })
 
     it('rejects if a string matches', () => {
-      return expect(app.preRequest({ uri: 'http://www.amaz.n.com' }))
+      return expect(app.preRequest(new URL('http://www.amaz.n.com')))
         .rejects.toEqual({})
     })
 
     it('rejects if a regex matches', () => {
-      return expect(app.preRequest({ uri: 'http://somewhere.it/is/called-bobby' }))
+      return expect(app.preRequest(new URL('http://somewhere.it/is/called-bobby')))
         .rejects.toEqual({})
     })
   })

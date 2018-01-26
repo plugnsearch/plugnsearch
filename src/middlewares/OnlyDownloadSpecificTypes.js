@@ -18,9 +18,10 @@ export default class OnlyDownloadSpecificTypes {
     this.appOptions = options
   }
 
-  preRequest (requestOptions, { report }) {
+  preRequest (url, requestOptions, { report }) {
     return new Promise((resolve, reject) => {
       request({
+        uri: url.normalizedHref,
         ...requestOptions,
         method: 'HEAD'
       }, (err, response) => {

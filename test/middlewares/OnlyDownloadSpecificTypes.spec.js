@@ -1,5 +1,6 @@
 /* eslint-env jest */
 import Crawler from '../../src/Crawler'
+import URL from '../../src/URL'
 import OnlyDownloadSpecificTypes, { UninterestingError } from '../../src/middlewares/OnlyDownloadSpecificTypes'
 
 let mockRequest = jest.fn()
@@ -8,6 +9,7 @@ jest.mock('request', () => (...args) => mockRequest.apply(null, args))
 describe('apps/OnlyDownloadSpecificTypes', () => {
   let app
   let requestOptions
+  let requestUrl
   let appInterface
   let requestError
   let getMockResponse
@@ -28,9 +30,8 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
       cb(requestError, getMockResponse(options))
     })
 
-    requestOptions = {
-      uri: 'http://localhost/maybe-video'
-    }
+    requestUrl = new URL('http://localhost/maybe-video')
+    requestOptions = {}
     appInterface = {
       report: jest.fn()
     }
@@ -43,10 +44,10 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
   it('sends out a HEAD request to given url', () => {
     app = new OnlyDownloadSpecificTypes({})
     expect.assertions(3)
-    return app.preRequest(requestOptions, appInterface)
+    return app.preRequest(requestUrl, requestOptions, appInterface)
       .then(() => {
         expect(calledOptions.length).toEqual(1)
-        expect(calledOptions[0].uri).toEqual(requestOptions.uri)
+        expect(calledOptions[0].uri).toEqual(requestUrl.href)
         expect(calledOptions[0].method).toEqual('HEAD')
       })
   })
@@ -60,7 +61,7 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
       })
 
       it('sends out a HEAD request to given url and resolves if matches', () => {
-        return expect(app.preRequest(requestOptions, appInterface))
+        return expect(app.preRequest(requestUrl, requestOptions, appInterface))
           .resolves.toEqual()
       })
 
@@ -68,7 +69,7 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
         resultContentType = 'text/xhtml'
 
         expect.assertions(1)
-        return app.preRequest(requestOptions, appInterface)
+        return app.preRequest(requestUrl, requestOptions, appInterface)
           .catch(() => {
             expect(appInterface.report).toHaveBeenCalledWith(
               'skipped',
@@ -88,7 +89,7 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
       it('sends out a HEAD request to given url and resolves if matches', () => {
         resultContentType = 'text/xhtml'
 
-        return expect(app.preRequest(requestOptions, appInterface))
+        return expect(app.preRequest(requestUrl, requestOptions, appInterface))
           .resolves.toEqual()
       })
 
@@ -96,7 +97,7 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
         resultContentType = 'audio/mp3'
 
         expect.assertions(1)
-        return app.preRequest(requestOptions, appInterface)
+        return app.preRequest(requestUrl, requestOptions, appInterface)
           .catch(() => {
             expect(appInterface.report).toHaveBeenCalledWith(
               'skipped',
@@ -116,7 +117,7 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
       it('sends out a HEAD request to given url and resolves if matches', () => {
         resultContentType = 'text/plain'
 
-        return expect(app.preRequest(requestOptions, appInterface))
+        return expect(app.preRequest(requestUrl, requestOptions, appInterface))
           .resolves.toEqual()
       })
 
@@ -124,7 +125,7 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
         resultContentType = 'audio/mp3'
 
         expect.assertions(1)
-        return app.preRequest(requestOptions, appInterface)
+        return app.preRequest(requestUrl, requestOptions, appInterface)
           .catch(() => {
             expect(appInterface.report).toHaveBeenCalledWith(
               'skipped',
@@ -148,7 +149,7 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
 
     it('logs a PageLoadError', () => {
       expect.assertions(1)
-      return app.preRequest(requestOptions, appInterface)
+      return app.preRequest(requestUrl, requestOptions, appInterface)
         .catch(() => {
           expect(appInterface.report).toHaveBeenCalledWith(
             'PageLoadError',
@@ -158,7 +159,7 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
     })
 
     it('tells the app to not log anything more', () => {
-      return expect(app.preRequest(requestOptions, appInterface))
+      return expect(app.preRequest(requestUrl, requestOptions, appInterface))
         .rejects.toEqual(new UninterestingError())
     })
   })
