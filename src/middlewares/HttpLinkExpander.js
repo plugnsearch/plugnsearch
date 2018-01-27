@@ -10,9 +10,14 @@ export default class HTTPLinkExpander {
   name = 'HTTPLinkExpander'
   noCheerio = true
 
-  constructor ({ maxDepth = 0, maxDepthLogging = false } = {}) {
+  constructor ({
+    maxDepth = 0,
+    maxDepthLogging = false,
+    urlFilter = null
+  } = {}) {
     this.maxDepth = maxDepth
     this.maxDepthLogging = maxDepthLogging
+    this.urlFilter = urlFilter
   }
 
   process ({ body, url, queueUrls, report }) {
@@ -20,6 +25,7 @@ export default class HTTPLinkExpander {
       .then(links => {
         const urls = links.map(link => link.url)
           .filter(url => url.indexOf('http') === 0)
+          .filter(url => this.urlFilter ? this.urlFilter(url) : true)
         if (this.maxDepth) {
           if (this.maxDepth <= (url.depth || 0)) {
             if (this.maxDepthLogging) {

@@ -1,5 +1,4 @@
 /* eslint-env jest */
-import Crawler from '../../src/Crawler'
 import HttpLinkExpander from '../../src/middlewares/HttpLinkExpander'
 import linkExtractor from '../../src/utils/linkExtractor'
 
@@ -131,6 +130,25 @@ describe('middlewares/HttpLinkExpander', () => {
         })
         expect(report).toHaveBeenCalledWith('skippedLinks', ['http://test.domain.one', 'https://secure.domain.two'])
         done()
+      })
+    })
+  })
+
+  describe('using a custom urlFilter parameter', () => {
+    beforeEach(() => {
+      app = new HttpLinkExpander({ urlFilter: url => /\.one/.test(url) })
+    })
+
+    it('only adds urls to queue, that match given urlFilter', done => {
+      expect.assertions(2)
+      app.process({
+        body: 'BODY',
+        url: { href: 'URL', depth: 2 },
+        queueUrls: urls => {
+          expect(urls.length).toEqual(1)
+          expect(urls[0]).toEqual('http://test.domain.one')
+          done()
+        }
       })
     })
   })
