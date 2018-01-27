@@ -5,8 +5,8 @@ import linkExtractor from '../utils/linkExtractor'
  * It won't find links outside an <a>-element and omits all non-http-links, like
  * mailto- or tel-links.
  */
-export default class ExpandOnlyHttpLinks {
-  name = 'ExpandOnlyHttpLinks'
+export default class HTTPLinkExpander {
+  name = 'HTTPLinkExpander'
   noCheerio = true
 
   process ({ body, url, queueUrls }) {

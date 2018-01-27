@@ -1,11 +1,11 @@
 /* eslint-env jest */
 import Crawler from '../../src/Crawler'
-import ExpandOnlyHttpLinks from '../../src/middlewares/ExpandOnlyHttpLinks'
+import HttpLinkExpander from '../../src/middlewares/HttpLinkExpander'
 
 let mockRequest = jest.fn()
 jest.mock('request', () => (...args) => mockRequest.apply(null, args))
 
-describe('middlewares/ExpandOnlyHttpLinks integration test', () => {
+describe('middlewares/HttpLinkExpander integration test', () => {
   let crawler
   let requestError
   let getMockResponse
@@ -33,7 +33,7 @@ describe('middlewares/ExpandOnlyHttpLinks integration test', () => {
   it('follows all the http links on a page', done => {
     expect.assertions(1)
     crawler = new Crawler({})
-    crawler.addApp(config => new ExpandOnlyHttpLinks(config))
+    crawler.addApp(config => new HttpLinkExpander(config))
     crawler.seed('http://localhost/item1')
       .on('finish', () => {
         expect(calledOptions.map(opt => opt.uri)).toEqual([

@@ -1,6 +1,6 @@
 /* eslint-env jest */
 import Crawler from '../../src/Crawler'
-import ExpandOnlyHttpLinks from '../../src/middlewares/ExpandOnlyHttpLinks'
+import HttpLinkExpander from '../../src/middlewares/HttpLinkExpander'
 import linkExtractor from '../../src/utils/linkExtractor'
 
 let mockRequest = jest.fn()
@@ -12,11 +12,11 @@ jest.mock('../../src/utils/linkExtractor', () => jest.fn(() => Promise.resolve([
   { url: 'tel:+11123456789' }
 ])))
 
-describe('middlewares/ExpandOnlyHttpLinks', () => {
+describe('middlewares/HttpLinkExpander', () => {
   let app
 
   beforeEach(() => {
-    app = new ExpandOnlyHttpLinks()
+    app = new HttpLinkExpander()
   })
 
   it('gives the body to linkExtractor for getting the links', done => {
@@ -71,7 +71,7 @@ describe('middlewares/ExpandOnlyHttpLinks', () => {
     it('follows all the http links on a page', done => {
       expect.assertions(1)
       crawler = new Crawler({})
-      crawler.addApp(config => new ExpandOnlyHttpLinks(config))
+      crawler.addApp(config => new HttpLinkExpander(config))
       crawler.seed('http://localhost/item1')
         .on('finish', () => {
           expect(calledOptions.map(opt => opt.uri)).toEqual([
