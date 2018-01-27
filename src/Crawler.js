@@ -109,7 +109,7 @@ export default class Crawler extends EventEmitter {
         if (!requestOptions) return
         return this.createRequest(requestOptions)
         // run all the process methods of registered apps
-        .then(response => this.runApps(response))
+        .then(response => this.runApps(url, response))
         // make sure URL is noted in report
         .then(() => this.reporter.report(requestOptions.uri))
         // if fail or success, we process the next URL
@@ -146,11 +146,11 @@ export default class Crawler extends EventEmitter {
   }
 
   // @private
-  runApps (response) {
+  runApps (url, response) {
     let $
     const params = {
-      report: (type, data) => this.reporter.report(response.request.href, type, data),
-      url: response.request.href,
+      report: (type, data) => this.reporter.report(url.toString(), type, data),
+      url: url,
       body: response.body,
       headers: response.headers,
       statusCode: response.statusCode,
@@ -178,7 +178,7 @@ export default class Crawler extends EventEmitter {
         if (app.processCatch) {
           app.processCatch(err)
         } else {
-          this.reporter.report(response.request.href, 'error', {
+          this.reporter.report(url.toString(), 'error', {
             type: 'AppError',
             message: `process method failed because of ${err.toString()}`,
             stackTrace: StackTraceParser.parse(err.stack).slice(0, 1).map(line => (

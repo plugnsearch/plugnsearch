@@ -8,7 +8,7 @@ export default class KeywordExtractor {
     this.keywords = keywords
   }
 
-  process ({ body, url, queueUrls, report }) {
+  process ({ body, report }) {
     const occurrences = new Occurences(body)
     let keywordCount = 0
     const matchingKeywords = []

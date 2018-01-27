@@ -12,7 +12,6 @@ describe('middlewares/HttpLinkExpander integration test', () => {
   let calledOptions
 
   beforeEach(() => {
-    jest.unmock('../../src/utils/linkExtractor')
     getMockResponse = ({ uri }) => (
       uri === 'http://localhost/item1'
         ? { body: `<html><a href="http://localhost/item42">link1</a><a href="http://localhost/item23">link2</a><a href="mailto:me@here.io">email me</a></html>`, request: { href: uri } }
@@ -29,7 +28,6 @@ describe('middlewares/HttpLinkExpander integration test', () => {
     mockRequest.mockClear()
   })
 
-  // no clue how to test that properly
   it('follows all the http links on a page', done => {
     expect.assertions(1)
     crawler = new Crawler({})
@@ -45,5 +43,37 @@ describe('middlewares/HttpLinkExpander integration test', () => {
         done()
       })
       .start()
+  })
+
+  describe('when having maxDepth defined', () => {
+    beforeEach(() => {
+      getMockResponse = ({ uri }) => ({
+        body: `<html><a href="${uri}1">new link</a></html>`,
+        request: { href: uri }
+      })
+    })
+
+    it('follows links up until certain depth', done => {
+      expect.assertions(2)
+      crawler = new Crawler({ maxDepth: 2, maxDepthLogging: true })
+      crawler.addApp(config => new HttpLinkExpander(config))
+      crawler.seed('http://localhost/item1')
+        .on('finish', reporter => {
+          expect(calledOptions.map(opt => opt.uri)).toEqual([
+            'http://localhost/item1',
+            'http://localhost/item11',
+            'http://localhost/item111'
+          ])
+
+          expect(reporter.toJson()).toEqual(expect.objectContaining({
+            'http://localhost/item111': {
+              skippedLinks: [ 'http://localhost/item1111' ]
+            }
+          }))
+
+          done()
+        })
+        .start()
+    })
   })
 })

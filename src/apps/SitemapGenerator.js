@@ -11,7 +11,7 @@ export default class SitemapGenerator {
       .then(meta => {
         report('meta', meta)
       })
-      .then(() => linkExtractor(body, url))
+      .then(() => linkExtractor(body, url.href))
       .then(links => {
         links.map(link => link.url)
           .forEach(newUrl => {

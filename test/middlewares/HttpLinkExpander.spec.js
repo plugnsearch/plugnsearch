@@ -23,7 +23,7 @@ describe('middlewares/HttpLinkExpander', () => {
     expect.assertions(1)
     app.process({
       body: 'BODY',
-      url: 'URL',
+      url: { href: 'URL' },
       queueUrls: () => {
         expect(linkExtractor).toHaveBeenCalledWith('BODY', 'URL')
         done()
@@ -35,7 +35,7 @@ describe('middlewares/HttpLinkExpander', () => {
     expect.assertions(1)
     app.process({
       body: 'BODY',
-      url: 'URL',
+      url: { href: 'URL' },
       queueUrls: (urls) => {
         expect(urls).toEqual(['http://test.domain.one', 'https://secure.domain.two'])
         done()
@@ -43,46 +43,95 @@ describe('middlewares/HttpLinkExpander', () => {
     })
   })
 
-  xdescribe('integration test', () => {
-    let crawler
-    let requestError
-    let getMockResponse
-    let calledOptions
-
+  describe('when adding maxDepth parameter', () => {
     beforeEach(() => {
-      jest.unmock('../../src/utils/linkExtractor')
-      getMockResponse = ({ uri }) => (
-        uri === 'http://localhost/item1'
-          ? { body: `<html><a href="http://localhost/item42">link1</a><a href="http://localhost/item23">link2</a><a href="mailto:me@here.io">email me</a></html>` }
-          : { body: '<html></html>' }
-      )
-      calledOptions = []
-      mockRequest.mockImplementation((options, cb) => {
-        calledOptions.push(options)
-        cb(requestError, getMockResponse(options))
+      app = new HttpLinkExpander({ maxDepth: 3 })
+    })
+
+    it('adds a depth field to added urls', done => {
+      expect.assertions(3)
+      app.process({
+        body: 'BODY',
+        url: { href: 'URL' },
+        queueUrls: urls => {
+          expect(urls.length).toEqual(2)
+          expect(urls[0]).toEqual(expect.objectContaining({
+            href: 'http://test.domain.one',
+            depth: 1
+          }))
+          expect(urls[1]).toEqual(expect.objectContaining({
+            href: 'https://secure.domain.two',
+            depth: 1
+          }))
+          done()
+        }
       })
     })
 
-    afterEach(() => {
-      mockRequest.mockClear()
+    it('adds plus one to last depth to added urls', done => {
+      expect.assertions(3)
+      app.process({
+        body: 'BODY',
+        url: { href: 'URL', depth: 2 },
+        queueUrls: urls => {
+          expect(urls.length).toEqual(2)
+          expect(urls[0]).toEqual(expect.objectContaining({
+            href: 'http://test.domain.one',
+            depth: 3
+          }))
+          expect(urls[1]).toEqual(expect.objectContaining({
+            href: 'https://secure.domain.two',
+            depth: 3
+          }))
+          done()
+        }
+      })
     })
 
-    // no clue how to test that properly
-    it('follows all the http links on a page', done => {
+    it('does not add urls if depth is exceeded', async done => {
+      let queueCalled = false
       expect.assertions(1)
-      crawler = new Crawler({})
-      crawler.addApp(config => new HttpLinkExpander(config))
-      crawler.seed('http://localhost/item1')
-        .on('finish', () => {
-          expect(calledOptions.map(opt => opt.uri)).toEqual([
-            'http://localhost/item1',
-            'http://localhost/item42',
-            'http://localhost/item23'
-          ])
+      await app.process({
+        body: 'BODY',
+        url: { href: 'URL', depth: 3 },
+        queueUrls: urls => {
+          queueCalled = true
+        }
+      })
+      expect(queueCalled).toEqual(false)
+      done()
+    })
 
-          done()
+    describe('without logging activated', () => {
+      it('those links will not appear somewhere', async done => {
+        let report = jest.fn()
+        expect.assertions(1)
+        await app.process({
+          body: 'BODY',
+          url: { href: 'URL', depth: 3 },
+          queueUrls: () => {}
         })
-        .start()
+        expect(report).not.toHaveBeenCalled()
+        done()
+      })
+    })
+
+    describe('with logging activated', () => {
+      beforeEach(() => {
+        app = new HttpLinkExpander({ maxDepth: 1, maxDepthLogging: true })
+      })
+      it('those links will not appear somewhere', async done => {
+        let report = jest.fn()
+        expect.assertions(1)
+        await app.process({
+          body: 'BODY',
+          url: { href: 'URL', depth: 2 },
+          queueUrls: () => {},
+          report
+        })
+        expect(report).toHaveBeenCalledWith('skippedLinks', ['http://test.domain.one', 'https://secure.domain.two'])
+        done()
+      })
     })
   })
 })

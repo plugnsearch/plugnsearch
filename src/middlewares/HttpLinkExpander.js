@@ -1,3 +1,4 @@
+import URL from '../URL'
 import linkExtractor from '../utils/linkExtractor'
 
 /**
@@ -9,12 +10,30 @@ export default class HTTPLinkExpander {
   name = 'HTTPLinkExpander'
   noCheerio = true
 
-  process ({ body, url, queueUrls }) {
-    return linkExtractor(body, url)
+  constructor ({ maxDepth = 0, maxDepthLogging = false } = {}) {
+    this.maxDepth = maxDepth
+    this.maxDepthLogging = maxDepthLogging
+  }
+
+  process ({ body, url, queueUrls, report }) {
+    return linkExtractor(body, url.href)
       .then(links => {
         const urls = links.map(link => link.url)
           .filter(url => url.indexOf('http') === 0)
-        queueUrls(urls)
+        if (this.maxDepth) {
+          if (this.maxDepth <= (url.depth || 0)) {
+            if (this.maxDepthLogging) {
+              report('skippedLinks', urls)
+            }
+            return
+          }
+          queueUrls(urls.map(href => new URL({
+            href,
+            depth: (url.depth || 0) + 1
+          })))
+        } else {
+          queueUrls(urls)
+        }
       })
   }
 }

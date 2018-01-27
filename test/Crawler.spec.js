@@ -93,7 +93,7 @@ describe('Crawler', () => {
     it('sends page body, response headers and url to process method of given app', done => {
       crawler.addApp({
         process: ({ url, body, headers }) => {
-          expect(url).toEqual(TEST_URL)
+          expect(url.href).toEqual(TEST_URL)
           expect(body).toEqual(exampleHTML)
           expect(headers).toEqual(headers)
         }
@@ -142,9 +142,9 @@ describe('Crawler', () => {
       crawler.addApp({
         process: ({ url, queueUrls }) => {
           if (callCount === 0) {
-            expect(url).toEqual(TEST_URL)
+            expect(url.toString()).toEqual(TEST_URL)
           } else {
-            expect(url).toEqual('http://moretotest.com')
+            expect(url.toString()).toEqual('http://moretotest.com')
           }
           queueUrls('http://moretotest.com')
           ++callCount
@@ -258,7 +258,7 @@ describe('Crawler', () => {
           },
 
           process: ({ url }) => {
-            expect(url).toEqual(TEST_URL + '/?bar&foo')
+            expect(url.toString()).toEqual(TEST_URL + '/?bar&foo')
           }
         })
         crawler.addApp({
@@ -268,7 +268,7 @@ describe('Crawler', () => {
           },
 
           process: ({ url }) => {
-            expect(url).toEqual(TEST_URL + '/?bar&foo')
+            expect(url.toString()).toEqual(TEST_URL + '/?bar&foo')
           }
         })
         crawler.seed(TEST_URL)
@@ -316,7 +316,7 @@ describe('Crawler', () => {
           },
 
           process: ({ url }) => {
-            expect(url).toEqual(TEST_URL + '/?foo?bar')
+            expect(url.toString()).toEqual(TEST_URL + '/?foo?bar')
           }
         })
         crawler.addApp({
@@ -328,7 +328,7 @@ describe('Crawler', () => {
           },
 
           process: ({ url }) => {
-            expect(url).toEqual(TEST_URL + '/?foo?bar')
+            expect(url.toString()).toEqual(TEST_URL + '/?foo?bar')
           }
         })
         crawler.seed(TEST_URL)
