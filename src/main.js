@@ -6,8 +6,8 @@ import winston from 'winston'
 // import App from './apps/linkDataExtractor'
 import ThrottleRequests from './middlewares/ThrottleRequests'
 import OnlyDownloadSpecificTypes from './middlewares/OnlyDownloadSpecificTypes'
-import DomainBlacklist from './middlewares/DomainBlacklist'
-import ExpandOnlyHttpLinks from './middlewares/ExpandOnlyHttpLinks'
+import Blacklist from './middlewares/Blacklist'
+import HttpLinkExpander from './middlewares/HttpLinkExpander'
 import MetaDataExtractor from './apps/MetaDataExtractor'
 import App from './apps/KeywordExtractor'
 
@@ -52,8 +52,10 @@ const crawler = new Crawler({
   requestOptions: {
     rejectUnauthorized: false
   },
-  // blacklistedDomains: `youtube.com amazon. dancesocially.com heutetanzen.de vimeo immobilien.hamburg.de immowelt.de facebook.com linkedin.com xing.com`.split(' '),
-  blacklistedDomains: [],
+  maxDepth: 1,
+  maxDepthLogging: true,
+  // blacklist: `youtube.com amazon. dancesocially.com heutetanzen.de vimeo immobilien.hamburg.de immowelt.de facebook.com linkedin.com xing.com`.split(' '),
+  blacklist: [],
   keywords: `
     dance dancing
     tanz tanzen tanzveranstaltung veranstaltung veranstaltungen
@@ -63,12 +65,12 @@ const crawler = new Crawler({
   `.split(' ')
 })
 crawler
-  // .addApp(config => new DomainBlacklist(config))
-  .addApp({ preRequest: (requestOptions) => { console.log(requestOptions.uri) } })
+  // .addApp(config => new Blacklist(config))
+  .addApp({ preRequest: (url) => { console.log(url.toString) } })
   .addApp(new OnlyDownloadSpecificTypes({ onlySpecificContentTypes: /html/ }))
   .addApp(new ThrottleRequests({ throttle: 1200 }))
   .addApp(new MetaDataExtractor())
-  .addApp(new ExpandOnlyHttpLinks())
+  .addApp(config => new HttpLinkExpander(config))
   .addApp(config => new App(config))
   .seed(SEED_URLS)
   .on('finish', reporter => {
