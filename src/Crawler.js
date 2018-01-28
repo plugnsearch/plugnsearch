@@ -1,4 +1,6 @@
 import EventEmitter from 'events'
+import fs from 'fs'
+import path from 'path'
 import StackTraceParser from 'stacktrace-parser'
 import request from 'request'
 import cheerio from 'cheerio'
@@ -42,6 +44,10 @@ export default class Crawler extends EventEmitter {
      */
     reporter = new JSONReporter(),
     /**
+     * Use this directory to put in snapshot files for test drive
+     */
+    snapshotDir = 'snapshots/',
+    /**
      * More config that can be passed through to app
      */
     ...config
@@ -52,6 +58,7 @@ export default class Crawler extends EventEmitter {
     this.userAgent = userAgent
     this.reporter = reporter
     this.logger = logger
+    this.snapshotDir = snapshotDir
 
     this.apps = []
     this.queue = queue
@@ -82,7 +89,15 @@ export default class Crawler extends EventEmitter {
     return this
   }
 
-  tick () {
+  test (testUrl) {
+    this.queue.queue(testUrl)
+    this.snapshotFile = path.join(this.snapshotDir, testUrl.replace(/[^a-zA-Z0-9_]/g, '-'))
+    // Use a clean and simple JSONReporter for testing
+    this.reporter = new JSONReporter()
+    this.tick(true)
+  }
+
+  tick (isTestRun) {
     const url = this.queue.getNextUrl()
     if (!url) {
       this.emit('finish', this.reporter)
@@ -107,7 +122,7 @@ export default class Crawler extends EventEmitter {
       .then(requestOptions => {
         // This means, we just catched an error in preRequest
         if (!requestOptions) return
-        return this.createRequest(requestOptions)
+        return this.createRequest(requestOptions, isTestRun)
         // run all the process methods of registered apps
         .then(response => this.runApps(url, response))
         // make sure URL is noted in report
@@ -192,16 +207,51 @@ export default class Crawler extends EventEmitter {
   }
 
   // @private
-  createRequest (requestOptions, cb) {
+  createRequest (requestOptions, isTestRun) {
     return new Promise((resolve, reject) => {
-      request(requestOptions, (err, response) => {
-        if (err) {
-          this.logError(err)
-          reject(err)
-        } else {
-          resolve(response)
-        }
-      })
+      // This part really feels, that it should not belong in the real Crawler implementation,
+      // but I don't know where it should go else. For now it works and helps. So lets see…
+      if (isTestRun) {
+        fs.readFile(this.snapshotFile, (err, snapResponse) => {
+          if (err) {
+            request(requestOptions, (err, response) => {
+              if (err) {
+                this.logError(err)
+                reject(err)
+              } else {
+                fs.writeFile(this.snapshotFile, JSON.stringify({
+                  body: response.body,
+                  headers: response.headers,
+                  statusCode: response.statusCode,
+                  contentType: (response.headers || {})['content-type']
+                }), (err) => {
+                  if (err) {
+                    this.logError(err)
+                  }
+                  resolve(response)
+                })
+              }
+            })
+          } else {
+            const response = JSON.parse(snapResponse)
+            resolve({
+              body: response.body,
+              headers: response.headers,
+              statusCode: response.statusCode,
+              contentType: response.contentType
+            })
+          }
+        })
+      } else {
+        request(requestOptions, (err, response) => {
+          if (err) {
+            this.logError(err)
+            reject(err)
+          } else {
+            resolve(response)
+          }
+        })
+      }
     })
   }
 

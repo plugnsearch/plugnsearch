@@ -1,4 +1,6 @@
 /* eslint-env jest */
+import fs from 'fs'
+import path from 'path'
 import Crawler from '../src/Crawler'
 import URL from '../src/URL'
 import Reporter from '../src/reporters/JSONReporter'
@@ -571,6 +573,95 @@ describe('Crawler', () => {
             done()
           })
           .start()
+      })
+    })
+  })
+
+  describe('testing methods using snapshots', () => {
+    const TEST_HTML = `<html>
+      <body>
+        <p>lorem ipsum</p>
+      </body>
+    </html>`
+    const TEST_URL = 'http://localhost/item_1'
+    const SNAPSHOT_FILENAME = 'http---localhost-item_1'
+
+    beforeEach(() => {
+      getMockResponse = (options) => ({
+        request: {
+          href: options.uri
+        },
+        body: TEST_HTML,
+        headers: {},
+        statusCode: 202
+      })
+
+      crawler = new Crawler({
+        snapshotDir: path.join(__dirname, 'snapshots/')
+      })
+      crawler.addApp({
+        process: ({ body, $, report }) => {
+          expect(body).toEqual(TEST_HTML)
+          report('text', $('p').text())
+        }
+      })
+    })
+
+    afterEach(() => {
+      // That specific snapshots
+      return new Promise((resolve, reject) => {
+        fs.unlink(path.join(__dirname, 'snapshots/'), () => {
+          resolve()
+        })
+      })
+    })
+
+    describe('if there is no snapshot yet', () => {
+      it('uses test method to make snapshots', done => {
+        expect.assertions(3)
+        crawler
+          .on('finish', report => {
+            expect(report.toJson()).toEqual({
+              [TEST_URL]: {
+                text: 'lorem ipsum'
+              }
+            })
+            fs.readFile(path.join(__dirname, 'snapshots', SNAPSHOT_FILENAME), (err, body) => {
+              expect(JSON.parse(body).body).toEqual(TEST_HTML)
+              done()
+            })
+          // TODO: check body with snapshot body
+          })
+          .test(TEST_URL)
+      })
+    })
+
+    describe('if there is a snapshot already', () => {
+      beforeEach(done => {
+        const preCrawler = new Crawler({
+          snapshotDir: path.join(__dirname, 'snapshots/')
+        })
+        preCrawler.on('finish', () => done())
+          .test(TEST_URL)
+      })
+
+      it('uses the snapshop rather then doing a request', (done) => {
+        expect.assertions(3)
+        crawler
+          .on('finish', report => {
+            expect(report.toJson()).toEqual({
+              [TEST_URL]: {
+                text: 'lorem ipsum'
+              }
+            })
+            fs.readFile(path.join(__dirname, 'snapshots', SNAPSHOT_FILENAME), (err, body) => {
+              expect(JSON.parse(body).body).toEqual(TEST_HTML)
+              done()
+            })
+          // TODO: check body with snapshot body
+          })
+          .test(TEST_URL)
+
       })
     })
   })
