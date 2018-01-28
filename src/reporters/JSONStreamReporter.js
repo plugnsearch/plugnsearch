@@ -22,8 +22,9 @@ export default class JSONStreamReporter {
 
   closeStream () {
     return new Promise(resolve => {
-      this.stream.on('finish', resolve)
-      this.stream.end(']')
+      this.stream
+        .on('finish', resolve)
+        .end(']')
     })
   }
 }
