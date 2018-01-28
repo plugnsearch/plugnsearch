@@ -14,7 +14,7 @@ export default class JSONStreamReporter {
       this.stream.write(', ')
     }
     this.stream.write(JSON.stringify({
-      url,
+      url: url.toString(),
       [type]: content
     }, null, 2))
     this.alreadyWritten = true

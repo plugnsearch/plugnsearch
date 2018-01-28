@@ -2,6 +2,7 @@
 import path from 'path'
 import fs from 'fs'
 import Reporter from '../../src/reporters/JSONStreamReporter'
+import URL from '../../src/URL'
 
 const tmpPath = path.join(__dirname, '../tmp')
 
@@ -74,5 +75,19 @@ describe('Reporter', () => {
     //     }
     //   }
     // })
+  })
+
+  it('can handle URL objects', done => {
+    reporter.report(new URL('http://something.com'), 'rejection', 'unsupported protocol')
+    expect.assertions(1)
+    reporter.closeStream()
+      .then(() => {
+        const writtenData = JSON.parse(fs.readFileSync(filename, 'UTF-8'))
+        expect(writtenData[0]).toEqual(expect.objectContaining({
+          url: 'http://something.com',
+          rejection: 'unsupported protocol'
+        }))
+        done()
+      })
   })
 })
