@@ -125,8 +125,6 @@ export default class Crawler extends EventEmitter {
         return this.createRequest(requestOptions, isTestRun)
         // run all the process methods of registered apps
         .then(response => this.runApps(url, response))
-        // make sure URL is noted in report
-        .then(() => this.reporter.report(requestOptions.uri))
         // if fail or success, we process the next URL
         .then(() => this.tick())
         .catch(() => this.tick())
@@ -163,8 +161,12 @@ export default class Crawler extends EventEmitter {
   // @private
   runApps (url, response) {
     let $
+    let reportCalled = false
     const params = {
-      report: (type, data) => this.reporter.report(url.toString(), type, data),
+      report: (type, data) => {
+        this.reporter.report(url.toString(), type, data)
+        reportCalled = true
+      },
       url: url,
       body: response.body,
       headers: response.headers,
@@ -203,7 +205,10 @@ export default class Crawler extends EventEmitter {
         }
       }
       return Promise.resolve()
-    }))
+    })).then(() => {
+      // make sure URL is noted in report
+      if (!reportCalled) this.reporter.report(url.toString())
+    })
   }
 
   // @private

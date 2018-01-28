@@ -494,6 +494,22 @@ describe('Crawler', () => {
           })
           .start()
       })
+
+      it('does not call the same url with empty data when already appearing in report', done => {
+        const stubReporter = { report: jest.fn() }
+        crawler = new Crawler({
+          reporter: stubReporter
+        })
+        crawler.addApp({
+          process: ({ report }) => { report('foo', 'bar') }
+        })
+        crawler.seed(TEST_URL)
+          .on('finish', reporter => {
+            expect(stubReporter.report).toHaveBeenCalledTimes(1)
+            done()
+          })
+          .start()
+      })
     })
 
     describe('specifying a contentType', () => {
@@ -626,7 +642,7 @@ describe('Crawler', () => {
                 text: 'lorem ipsum'
               }
             })
-            fs.readFile(path.join(__dirname, 'snapshots', SNAPSHOT_FILENAME), (err, body) => {
+            fs.readFile(path.join(__dirname, 'snapshots', SNAPSHOT_FILENAME), (_err, body) => {
               expect(JSON.parse(body).body).toEqual(TEST_HTML)
               done()
             })
@@ -654,14 +670,13 @@ describe('Crawler', () => {
                 text: 'lorem ipsum'
               }
             })
-            fs.readFile(path.join(__dirname, 'snapshots', SNAPSHOT_FILENAME), (err, body) => {
+            fs.readFile(path.join(__dirname, 'snapshots', SNAPSHOT_FILENAME), (_err, body) => {
               expect(JSON.parse(body).body).toEqual(TEST_HTML)
               done()
             })
           // TODO: check body with snapshot body
           })
           .test(TEST_URL)
-
       })
     })
   })
