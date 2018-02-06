@@ -10,8 +10,16 @@ import checkContentType from './utils/checkContentType'
 import SimpleURLQueue from './SimpleURLQueue'
 import JSONReporter from './reporters/JSONReporter'
 
-const callAppPreRequestsInSeries = (series, preRequestParams) => Promise.all([series.reduce(
-  (memo, app) => memo.then(() => app.preRequest.apply(app, preRequestParams)),
+const callAppPreRequestsInSeries = (series, preRequestParams, reportTime) => Promise.all([series.reduce(
+  (memo, app) => memo.then(() => {
+    if (reportTime) reportTime.start()
+    return app.preRequest && app.preRequest.apply(app, preRequestParams)
+  }).then(result => {
+    if (reportTime) {
+      app.preRequest ? reportTime.end() : reportTime.skip()
+    }
+    return result
+  }),
   Promise.resolve([])
 )])
 
@@ -25,10 +33,6 @@ export default class Crawler extends EventEmitter {
      * Options for request, use what ever request allows
      */
     requestOptions = {},
-    /**
-     * This ignore the robots.txt file
-     */
-    ignoreRobotsTxt = false, // @TODO
     /**
      * Define the logger that we log to
      */
@@ -48,6 +52,10 @@ export default class Crawler extends EventEmitter {
      */
     snapshotDir = 'snapshots/',
     /**
+     * If this is true, the Crawler keeps track of run times of all Apps, and will create a report at the end
+     */
+    benchmark = false,
+    /**
      * More config that can be passed through to app
      */
     ...config
@@ -59,6 +67,7 @@ export default class Crawler extends EventEmitter {
     this.reporter = reporter
     this.logger = logger
     this.snapshotDir = snapshotDir
+    this.benchmarks = benchmark ? [] : null
 
     this.apps = []
     this.queue = queue
@@ -71,10 +80,16 @@ export default class Crawler extends EventEmitter {
    * a factory method, that gets the config of the crawler to init your app
    */
   addApp (app) {
-    if (typeof app === 'function') {
-      this.apps.push(app(this.config))
-    } else {
-      this.apps.push(app)
+    const appToAdd = typeof app === 'function'
+      ? app(this.config)
+      : app
+    this.apps.push(appToAdd)
+    if (this.benchmarks) {
+      this.benchmarks.push({
+        preRequestTimes: [],
+        processTimes: [],
+        runs: 0
+      })
     }
     return this
   }
@@ -145,11 +160,10 @@ export default class Crawler extends EventEmitter {
   // @private
   runPrequests (url, requestOptions) {
     const preRequests = this.apps
-      .filter(app => app.preRequest)
     const appInterface = {
       report: (type, data) => this.reporter.report(url.normalizedHref, type, data)
     }
-    return callAppPreRequestsInSeries(preRequests, [url, requestOptions, appInterface])
+    return this.doBenchmarking('preRequestTimes', reportTime => callAppPreRequestsInSeries(preRequests, [url, requestOptions, appInterface], reportTime))
       // resolve with the final request options
       // Create the real request Options object now
       .then(() => ({
@@ -175,40 +189,46 @@ export default class Crawler extends EventEmitter {
       queueUrls: (urls) => this.queue.queue(urls),
       response
     }
-    return Promise.all(this.apps.filter(app => app.process).map(app => {
-      if (!checkContentType(app.contentType, params.contentType)) {
-        return Promise.resolve()
-      }
-      if (!app.noCheerio && !$) {
-        $ = cheerio.load(response.body)
-      }
-      try {
-        const result = app.process(app.noCheerio ? params : {
-          ...params,
-          $
-        })
-        if (result && result.constructor === Promise) {
-          return result
-        }
-      } catch (err) {
-        this.logError(err)
-        if (app.processCatch) {
-          app.processCatch(err)
+    return Promise.all(this.doBenchmarking('processTimes', reportTime => (
+      this.apps.map(app => {
+        if (app.process && checkContentType(app.contentType, params.contentType)) {
+          if (!app.noCheerio && !$) {
+            $ = cheerio.load(response.body)
+          }
+          reportTime && reportTime.start()
+          try {
+            const result = app.process(app.noCheerio ? params : {
+              ...params,
+              $
+            })
+            if (result && result.constructor === Promise) {
+              reportTime && reportTime.end()
+              return result
+            }
+          } catch (err) {
+            reportTime && reportTime.end()
+            this.logError(err)
+            if (app.processCatch) {
+              app.processCatch(err)
+            } else {
+              this.reporter.report(url.toString(), 'error', {
+                type: 'AppError',
+                message: `process method failed because of ${err.toString()}`,
+                stackTrace: StackTraceParser.parse(err.stack).slice(0, 1).map(line => (
+                  `at ${line.file}:${line.lineNumber}:${line.column}`
+                )).join('/n')
+              })
+            }
+          }
         } else {
-          this.reporter.report(url.toString(), 'error', {
-            type: 'AppError',
-            message: `process method failed because of ${err.toString()}`,
-            stackTrace: StackTraceParser.parse(err.stack).slice(0, 1).map(line => (
-              `at ${line.file}:${line.lineNumber}:${line.column}`
-            )).join('/n')
-          })
+          reportTime && reportTime.skip()
         }
-      }
-      return Promise.resolve()
-    })).then(() => {
+        return Promise.resolve()
+      })
+    ))).then(() => {
       // make sure URL is noted in report
       if (!reportCalled) this.reporter.report(url.toString())
-    })
+    }).catch(e => console.log(e))
   }
 
   // @private
@@ -283,5 +303,49 @@ export default class Crawler extends EventEmitter {
     this.logger.error(err.toString() + '/n' + StackTraceParser.parse(err.stack).map(line => (
       `  at ${line.file}:${line.lineNumber}:${line.column}`
     )).join('/n'))
+  }
+
+  doBenchmarking (methodType, cb) {
+    let reportTime
+    if (this.benchmarks) {
+      let appIndex = 0
+      let start
+      let end
+      reportTime = {
+        start: () => {
+          start = Math.round(process.hrtime()[1] / 1000) // make it ms
+          end = null
+        },
+        end: () => {
+          if (end) return // ignore duplicate calls
+          end = Math.round(process.hrtime()[1] / 1000) // make it ms
+          this.benchmarks[appIndex][methodType].push((end - start) / 1000)
+          ++appIndex
+        },
+        skip: () => {
+          ++appIndex
+        }
+      }
+    }
+    return cb(reportTime)
+  }
+
+  benchmarkReport () {
+    if (this.benchmarks) {
+      return this.benchmarks.map((benchmark, index) => {
+        const app = this.apps[index]
+        const preLength = benchmark.preRequestTimes.length
+        const preSum = benchmark.preRequestTimes.reduce((m, a) => m + a, 0)
+        const proLength = benchmark.processTimes.length
+        const proSum = benchmark.processTimes.reduce((m, a) => m + a, 0)
+        return {
+          name: app.name || `App#${index + 1}`,
+          preRequest: { runs: preLength || 0, totalTime: preSum || 0, average: preLength ? preSum / preLength : 0 },
+          process: { runs: proLength || 0, totalTime: proSum || 0, average: proLength ? proSum / proLength : 0 },
+          totalTime: preSum + proSum
+        }
+      })
+    }
+    return null
   }
 }

@@ -1,8 +1,8 @@
 /* eslint-env jest */
 import fs from 'fs'
 import path from 'path'
+import sinon from 'sinon'
 import Crawler from '../src/Crawler'
-import URL from '../src/URL'
 import Reporter from '../src/reporters/JSONReporter'
 
 let mockRequest = jest.fn()
@@ -678,6 +678,93 @@ describe('Crawler', () => {
           })
           .test(TEST_URL)
       })
+    })
+  })
+
+  describe('benchmarking', () => {
+    let clock
+    beforeEach(() => {
+      clock = sinon.useFakeTimers()
+    })
+    afterEach(() => {
+      clock.restore()
+    })
+
+    it('if no benchmarking is wanted, benchmarkReport is null', () => {
+      crawler = new Crawler()
+      expect(crawler.benchmarkReport()).toEqual(null)
+    })
+
+    it('if benchmarking is requested, but we have done anything yet', () => {
+      crawler = new Crawler({ benchmark: true })
+      crawler.addApp({
+        name: 'First App',
+        process: () => {}
+      })
+      crawler.addApp({
+        process: () => {}
+      })
+      expect(crawler.benchmarkReport()).toEqual([
+        {
+          name: 'First App',
+          preRequest: { runs: 0, totalTime: 0, average: 0 },
+          process: { runs: 0, totalTime: 0, average: 0 },
+          totalTime: 0
+        }, {
+          name: 'App#2',
+          preRequest: { runs: 0, totalTime: 0, average: 0 },
+          process: { runs: 0, totalTime: 0, average: 0 },
+          totalTime: 0
+        }
+      ])
+    })
+
+    it('if benchmarking is requested, and we have collected data of one run, it reports the seconds (and milliseconds resolution)', done => {
+      crawler = new Crawler({ benchmark: true })
+      crawler.addApp({
+        name: 'First App',
+        noCheerio: true,
+        process: () => {
+          return new Promise(resolve => {
+            clock.tick(42)
+            resolve()
+          })
+        }
+      })
+      crawler.addApp({
+        noCheerio: true,
+        preRequest: () => {
+          return new Promise(resolve => {
+            clock.tick(100.123456)
+            resolve()
+          })
+        },
+        process: () => {
+          return new Promise(resolve => {
+            clock.tick(1)
+            resolve()
+          })
+        }
+      })
+      crawler
+        .seed(['http://test.de'])
+        .on('finish', () => {
+          expect(crawler.benchmarkReport()).toEqual([
+            {
+              name: 'First App',
+              preRequest: { runs: 0, totalTime: 0, average: 0 },
+              process: { runs: 1, totalTime: 42, average: 42 },
+              totalTime: 42
+            }, {
+              name: 'App#2',
+              preRequest: { runs: 1, totalTime: 100.123, average: 100.123 },
+              process: { runs: 1, totalTime: 1, average: 1 },
+              totalTime: 101.123
+            }
+          ])
+          done()
+        })
+        .start()
     })
   })
 })
