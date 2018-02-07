@@ -192,5 +192,26 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
         })
         .start()
     })
+
+    it('when error happens', done => {
+      requestError = new Error('ESOCKETTIMEDOUT')
+      crawler = new Crawler({
+        onlySpecificContentTypes: ['text/html', 'text/plain']
+      })
+      crawler.addApp(config => new OnlyDownloadSpecificTypes(config))
+      crawler.seed(['http://localhost/?text/html', 'http://localhost/?audio/mp3'])
+        .on('finish', (reporter) => {
+          expect(reporter.toJson()).toEqual({
+            'http://localhost/?text/html': {
+              error: expect.objectContaining({ 'message': 'preRequest method failed because of Error: ESOCKETTIMEDOUT' })
+            },
+            'http://localhost/?audio/mp3': {
+              error: expect.objectContaining({ 'message': 'preRequest method failed because of Error: ESOCKETTIMEDOUT' })
+            }
+          })
+          done()
+        })
+        .start()
+    })
   })
 })

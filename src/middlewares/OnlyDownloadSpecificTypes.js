@@ -23,7 +23,8 @@ export default class OnlyDownloadSpecificTypes {
       request({
         uri: url.normalizedHref,
         ...requestOptions,
-        method: 'HEAD'
+        method: 'HEAD',
+        timeout: 20000
       }, (err, response) => {
         if (err) {
           reject(err)
