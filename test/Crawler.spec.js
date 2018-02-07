@@ -766,5 +766,53 @@ describe('Crawler', () => {
         })
         .start()
     })
+
+    it('adds times to benchmark although there is a promise rejected in preRequest', done => {
+      crawler = new Crawler({ benchmark: true })
+      crawler.addApp({
+        name: 'First App',
+        noCheerio: true,
+        process: () => {
+          return new Promise(resolve => {
+            clock.tick(42)
+            resolve(new Error('BAM'))
+          })
+        }
+      })
+      crawler.addApp({
+        noCheerio: true,
+        preRequest: () => {
+          return new Promise((resolve, reject) => {
+            clock.tick(100.123456)
+            reject(new Error('BAM'))
+          })
+        },
+        process: () => {
+          return new Promise(resolve => {
+            clock.tick(1)
+            resolve()
+          })
+        }
+      })
+      crawler
+        .seed(['http://test.de'])
+        .on('finish', () => {
+          expect(crawler.benchmarkReport()).toEqual([
+            {
+              name: 'First App',
+              preRequest: { runs: 0, totalTime: 0, average: 0 },
+              process: { runs: 0, totalTime: 0, average: 0 },
+              totalTime: 0
+            }, {
+              name: 'App#2',
+              preRequest: { runs: 1, totalTime: 100.123, average: 100.123 },
+              process: { runs: 0, totalTime: 0, average: 0 },
+              totalTime: 100.123
+            }
+          ])
+          done()
+        })
+        .start()
+    })
   })
 })

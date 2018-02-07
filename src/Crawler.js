@@ -19,6 +19,9 @@ const callAppPreRequestsInSeries = (series, preRequestParams, reportTime) => Pro
       app.preRequest ? reportTime.end() : reportTime.skip()
     }
     return result
+  }).catch(err => {
+    if (reportTime) reportTime.end()
+    throw err
   }),
   Promise.resolve([])
 )])
