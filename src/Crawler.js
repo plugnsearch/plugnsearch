@@ -228,7 +228,7 @@ export default class Crawler extends EventEmitter {
     ))).then(() => {
       // make sure URL is noted in report
       if (!reportCalled) this.reporter.report(url.toString())
-    }).catch(e => console.log(e))
+    })
   }
 
   // @private
