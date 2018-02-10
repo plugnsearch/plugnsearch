@@ -13,3 +13,5 @@ export JSONStreamReporter from './src/reporters/JSONStreamReporter'
 export checkContentType from './src/utils/checkContentType'
 export dataExtractor from './src/utils/dataExtractor'
 export linkExtractor from './src/utils/linkExtractor'
+
+export URL from './src/URL'
