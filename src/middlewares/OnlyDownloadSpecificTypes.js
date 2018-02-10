@@ -14,11 +14,12 @@ export default class OnlyDownloadSpecificTypes {
   name = 'OnlyDownloadSpecificTypes'
   noCheerio = true
 
-  constructor (options) {
-    this.appOptions = options
+  constructor ({ onlySpecificContentTypes = null } = {}) {
+    this.onlySpecificContentTypes = onlySpecificContentTypes
   }
 
   preRequest (url, requestOptions, { report }) {
+    if (this.onlySpecificContentTypes === null) return Promise.resolve()
     return new Promise((resolve, reject) => {
       request({
         uri: url.normalizedHref,
@@ -36,7 +37,7 @@ export default class OnlyDownloadSpecificTypes {
               `${response.statusMessage} (${response.statusCode})`
             )
             reject(new UninterestingError())
-          } else if (!checkContentType(this.appOptions.onlySpecificContentTypes, contentType)) {
+          } else if (!checkContentType(this.onlySpecificContentTypes, contentType)) {
             report(
               'skipped',
               `The Content-Type "${contentType}" does not match allowed content-type. Resource will be skipped.`

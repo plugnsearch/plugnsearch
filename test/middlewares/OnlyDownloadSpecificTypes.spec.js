@@ -35,6 +35,9 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
     appInterface = {
       report: jest.fn()
     }
+    app = new OnlyDownloadSpecificTypes({
+      onlySpecificContentTypes: 'text/html'
+    })
   })
 
   afterEach(() => {
@@ -42,7 +45,6 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
   })
 
   it('sends out a HEAD request to given url', () => {
-    app = new OnlyDownloadSpecificTypes({})
     expect.assertions(3)
     return app.preRequest(requestUrl, requestOptions, appInterface)
       .then(() => {
@@ -131,6 +133,22 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
               'skipped',
               'The Content-Type "audio/mp3" does not match allowed content-type. Resource will be skipped.'
             )
+          })
+      })
+    })
+
+    describe('defined as null', () => {
+      beforeEach(() => {
+        app = new OnlyDownloadSpecificTypes({
+          onlySpecificContentTypes: null
+        })
+      })
+
+      it('does not send out an additional HEAD request', () => {
+        expect.assertions(1)
+        return app.preRequest(requestUrl, requestOptions, appInterface)
+          .then(() => {
+            expect(mockRequest).not.toHaveBeenCalled()
           })
       })
     })
