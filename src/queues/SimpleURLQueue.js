@@ -1,15 +1,13 @@
-import EventEmitter from 'events'
 import normalizeUrl from 'normalize-url'
 import isArray from 'lodash/isArray'
 
 import URL from '../URL'
 
-export default class SimpleURLQueue extends EventEmitter {
+export default class SimpleURLQueue {
   urlsDone = []
   urlsTodo = []
 
   constructor ({ skipDuplicates = true } = {}) {
-    super()
     this.skipDuplicates = skipDuplicates
   }
 
@@ -36,13 +34,9 @@ export default class SimpleURLQueue extends EventEmitter {
 
   getNextUrl () {
     const url = this.urlsTodo.shift()
-    if (!url) return null
+    if (!url) return Promise.resolve(null) // eslint-disable-line prefer-promise-reject-errors
     this.urlsDone.push(url.normalizedHref)
 
-    if (this.urlsTodo.length === 0) {
-      this.emit('empty')
-    }
-
-    return url
+    return Promise.resolve(url)
   }
 }

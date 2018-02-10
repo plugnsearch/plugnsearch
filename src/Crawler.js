@@ -115,8 +115,8 @@ export default class Crawler extends EventEmitter {
     this.tick(true)
   }
 
-  tick (isTestRun) {
-    const url = this.queue.getNextUrl()
+  async tick (isTestRun) {
+    const url = await this.queue.getNextUrl()
     if (!url) {
       this.emit('finish', this.reporter)
       return

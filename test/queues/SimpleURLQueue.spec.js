@@ -9,92 +9,76 @@ describe('SimpleURLQueue', () => {
       queue = new SimpleURLQueue()
     })
 
-    it('can queue one item at a time and returns them FIFO', () => {
+    it('can queue one item at a time and returns them FIFO', async () => {
       queue.queue('http://item1.com')
       queue.queue('http://item2.com')
       queue.queue('http://item3.com')
 
-      expect(queue.getNextUrl().href).toEqual('http://item1.com')
-      expect(queue.getNextUrl().href).toEqual('http://item2.com')
-      expect(queue.getNextUrl().href).toEqual('http://item3.com')
+      expect((await queue.getNextUrl()).href).toEqual('http://item1.com')
+      expect((await queue.getNextUrl()).href).toEqual('http://item2.com')
+      expect((await queue.getNextUrl()).href).toEqual('http://item3.com')
 
       // Nothing in it anymore
-      expect(queue.getNextUrl()).toEqual(null)
+      return expect(queue.getNextUrl()).resolves.toEqual(null)
     })
 
-    it('can queue multiple items at once', () => {
+    it('can queue multiple items at once', async () => {
       queue.queue(['http://item1.com', 'http://item2.com', 'http://item3.com'])
 
-      expect(queue.getNextUrl().href).toEqual('http://item1.com')
-      expect(queue.getNextUrl().href).toEqual('http://item2.com')
-      expect(queue.getNextUrl().href).toEqual('http://item3.com')
+      expect((await queue.getNextUrl()).href).toEqual('http://item1.com')
+      expect((await queue.getNextUrl()).href).toEqual('http://item2.com')
+      expect((await queue.getNextUrl()).href).toEqual('http://item3.com')
 
       // Nothing in it anymore
-      expect(queue.getNextUrl()).toEqual(null)
+      return expect(queue.getNextUrl()).resolves.toEqual(null)
     })
 
-    it('removes duplicates from todo item', () => {
+    it('removes duplicates from todo item', async () => {
       queue.queue('http://item1.com')
       queue.queue('http://item1.com')
       queue.queue('http://item1.com')
 
-      expect(queue.getNextUrl().href).toEqual('http://item1.com')
-      expect(queue.getNextUrl()).toEqual(null)
+      expect((await queue.getNextUrl()).href).toEqual('http://item1.com')
+      return expect(queue.getNextUrl()).resolves.toEqual(null)
     })
 
-    it('removes duplicates from items already seen', () => {
+    it('removes duplicates from items already seen', async () => {
       queue.queue('http://item1.com')
-      expect(queue.getNextUrl().href).toEqual('http://item1.com')
+      expect((await queue.getNextUrl()).href).toEqual('http://item1.com')
 
       queue.queue('http://item1.com')
       queue.queue('http://item1.com')
 
-      expect(queue.getNextUrl()).toEqual(null)
+      return expect(queue.getNextUrl()).resolves.toEqual(null)
     })
 
-    it('normalizes urls', () => {
+    it('normalizes urls', async () => {
       queue.queue('http://item1.com')
       queue.queue('http://item1.com/')
       queue.queue('http://ITEM1.com')
 
-      expect(queue.getNextUrl().href).toEqual('http://item1.com')
-      expect(queue.getNextUrl()).toEqual(null)
+      expect((await queue.getNextUrl()).href).toEqual('http://item1.com')
+      return expect(queue.getNextUrl()).resolves.toEqual(null)
     })
 
-    it('can have additional data added to the object', () => {
+    it('can have additional data added to the object', async () => {
       queue.queue({ href: 'http://item1.com', foo: 'bar' })
       queue.queue({ href: 'http://item1.com/', moo: 'too' })
       queue.queue('http://ITEM1.com')
 
-      const matchingUrl = queue.getNextUrl()
+      const matchingUrl = await queue.getNextUrl()
       expect(matchingUrl).toEqual(expect.objectContaining({ href: 'http://item1.com', foo: 'bar' }))
       expect(matchingUrl.moo).toBeUndefined()
-      expect(queue.getNextUrl()).toEqual(null)
+      return expect(queue.getNextUrl()).resolves.toEqual(null)
     })
 
-    it('also works with URL objects', () => {
+    it('also works with URL objects', async () => {
       queue.queue(new URL('http://item1.com'))
       queue.queue(new URL('http://item1.com/'))
       queue.queue(new URL('http://ITEM1.com'))
 
-      expect(queue.getNextUrl()).toEqual(expect.objectContaining({ href: 'http://item1.com' }))
-      expect(queue.getNextUrl()).toEqual(null)
-    })
-
-    it('sends out a empty event if the last item gets removed', () => {
-      const spy = jest.fn()
-      queue.on('empty', spy)
-      queue.queue('http://item1.com')
-      queue.queue('http://item2.com')
-
-      queue.getNextUrl()
-      expect(spy).not.toHaveBeenCalled()
-
-      queue.getNextUrl()
-      expect(spy).toHaveBeenCalled()
-
-      queue.getNextUrl()
-      expect(spy).toHaveBeenCalledTimes(1)
+      expect(await queue.getNextUrl()).toEqual(expect.objectContaining({ href: 'http://item1.com' }))
+      return expect(queue.getNextUrl()).resolves.toEqual(null)
     })
 
     it('throws up if you present something that is not an url', () => {
