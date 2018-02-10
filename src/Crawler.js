@@ -343,8 +343,8 @@ export default class Crawler extends EventEmitter {
         const proSum = benchmark.processTimes.reduce((m, a) => m + a, 0)
         return {
           name: app.name || `App#${index + 1}`,
-          preRequest: { runs: preLength || 0, totalTime: preSum || 0, average: preLength ? preSum / preLength : 0 },
-          process: { runs: proLength || 0, totalTime: proSum || 0, average: proLength ? proSum / proLength : 0 },
+          preRequest: { runs: preLength || 0, totalTime: preSum || 0, average: preLength ? preSum / preLength : 0, times: benchmark.preRequestTimes },
+          process: { runs: proLength || 0, totalTime: proSum || 0, average: proLength ? proSum / proLength : 0, times: benchmark.processTimes },
           totalTime: preSum + proSum
         }
       })

@@ -707,13 +707,13 @@ describe('Crawler', () => {
       expect(crawler.benchmarkReport()).toEqual([
         {
           name: 'First App',
-          preRequest: { runs: 0, totalTime: 0, average: 0 },
-          process: { runs: 0, totalTime: 0, average: 0 },
+          preRequest: { runs: 0, totalTime: 0, average: 0, times: [] },
+          process: { runs: 0, totalTime: 0, average: 0, times: [] },
           totalTime: 0
         }, {
           name: 'App#2',
-          preRequest: { runs: 0, totalTime: 0, average: 0 },
-          process: { runs: 0, totalTime: 0, average: 0 },
+          preRequest: { runs: 0, totalTime: 0, average: 0, times: [] },
+          process: { runs: 0, totalTime: 0, average: 0, times: [] },
           totalTime: 0
         }
       ])
@@ -752,13 +752,13 @@ describe('Crawler', () => {
           expect(crawler.benchmarkReport()).toEqual([
             {
               name: 'First App',
-              preRequest: { runs: 0, totalTime: 0, average: 0 },
-              process: { runs: 1, totalTime: 42, average: 42 },
+              preRequest: { runs: 0, totalTime: 0, average: 0, times: [] },
+              process: { runs: 1, totalTime: 42, average: 42, times: [42] },
               totalTime: 42
             }, {
               name: 'App#2',
-              preRequest: { runs: 1, totalTime: 100.123, average: 100.123 },
-              process: { runs: 1, totalTime: 1, average: 1 },
+              preRequest: { runs: 1, totalTime: 100.123, average: 100.123, times: [100.123] },
+              process: { runs: 1, totalTime: 1, average: 1, times: [1] },
               totalTime: 101.123
             }
           ])
@@ -800,13 +800,13 @@ describe('Crawler', () => {
           expect(crawler.benchmarkReport()).toEqual([
             {
               name: 'First App',
-              preRequest: { runs: 0, totalTime: 0, average: 0 },
-              process: { runs: 0, totalTime: 0, average: 0 },
+              preRequest: { runs: 0, totalTime: 0, average: 0, times: [] },
+              process: { runs: 0, totalTime: 0, average: 0, times: [] },
               totalTime: 0
             }, {
               name: 'App#2',
-              preRequest: { runs: 1, totalTime: 100.123, average: 100.123 },
-              process: { runs: 0, totalTime: 0, average: 0 },
+              preRequest: { runs: 1, totalTime: 100.123, average: 100.123, times: [100.123] },
+              process: { runs: 0, totalTime: 0, average: 0, times: [] },
               totalTime: 100.123
             }
           ])
