@@ -7,7 +7,7 @@ import cheerio from 'cheerio'
 import isArray from 'lodash/isArray'
 
 import checkContentType from './utils/checkContentType'
-import SimpleURLQueue from './SimpleURLQueue'
+import SimpleURLQueue from './queues/SimpleURLQueue'
 import JSONReporter from './reporters/JSONReporter'
 
 const callAppPreRequestsInSeries = (series, preRequestParams, reportTime) => Promise.all([series.reduce(

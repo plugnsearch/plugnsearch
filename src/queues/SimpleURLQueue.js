@@ -2,7 +2,7 @@ import EventEmitter from 'events'
 import normalizeUrl from 'normalize-url'
 import isArray from 'lodash/isArray'
 
-import URL from './URL'
+import URL from '../URL'
 
 export default class SimpleURLQueue extends EventEmitter {
   urlsDone = []
