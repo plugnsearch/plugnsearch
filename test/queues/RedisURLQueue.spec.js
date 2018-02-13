@@ -131,6 +131,24 @@ describe('RedisURLQueue', () => {
     })
   })
 
+  describe('without skipping duplicates', () => {
+    beforeEach(() => {
+      queue = new RedisURLQueue({ redisOptions, skipDuplicates: false })
+    })
+
+    it('does not remove duplicates from items already seen', async () => {
+      await queue.queue('http://item1.com')
+      expect((await queue.getNextUrl()).href).toEqual('http://item1.com')
+
+      await queue.queue('http://item1.com')
+      await queue.queue('http://item1.com')
+
+      expect((await queue.getNextUrl()).href).toEqual('http://item1.com')
+      expect((await queue.getNextUrl()).href).toEqual('http://item1.com')
+      return expect(queue.getNextUrl()).resolves.toEqual(null)
+    })
+  })
+
   describe('error handling', () => {
     beforeEach(() => {
       queue = new RedisURLQueue({ redisOptions })
