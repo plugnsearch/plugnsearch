@@ -14,4 +14,7 @@ export checkContentType from './src/utils/checkContentType'
 export dataExtractor from './src/utils/dataExtractor'
 export linkExtractor from './src/utils/linkExtractor'
 
+export SimpleURLQueue from './src/queues/SimpleURLQueue'
+export RedisURLQueue from './src/queues/RedisURLQueue'
+
 export URL from './src/URL'
