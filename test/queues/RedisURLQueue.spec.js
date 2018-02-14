@@ -77,6 +77,14 @@ describe('RedisURLQueue', () => {
       return expect(queue.getNextUrl()).resolves.toEqual(null)
     })
 
+    it('queueing nothing does not do anything', async () => {
+      await queue.queue()
+      await queue.queue([])
+      // And no error was thrown
+
+      return expect(queue.getNextUrl()).resolves.toEqual(null)
+    })
+
     it('removes duplicates from todo item', async () => {
       await queue.queue(['http://item1.com', 'http://item1.com'])
       await queue.queue('http://item1.com')

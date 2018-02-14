@@ -22,8 +22,10 @@ export default class RedisURLQueue extends SimpleURLQueue {
   }
 
   async queue (href) {
+    if (!href) { return null }
     let urls = isArray(href) ? href : [href]
     urls = urls.map(u => new URL(u))
+
     if (this.skipDuplicates) {
       urls = uniqBy(urls, u => u.normalizedHref)
       const values = await this.redisHMGet(`${this.redisKey}.Done`, urls.map(u => u.normalizedHref))
