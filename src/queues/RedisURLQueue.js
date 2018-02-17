@@ -36,7 +36,8 @@ export default class RedisURLQueue extends SimpleURLQueue {
     }
 
     const [validUrls, invalidUrls] = partition(urls, u => u.isValid)
-    await this.redisRPush(this.redisKey, validUrls)
+    // That .href is needed because of redis making a toString otherwise. We need a string there
+    await this.redisRPush(this.redisKey, validUrls.map(u => JSON.stringify(u)))
     if (invalidUrls.length) {
       return { invalidUrls }
     }
@@ -45,6 +46,6 @@ export default class RedisURLQueue extends SimpleURLQueue {
 
   async getNextUrl () {
     const result = await this.redisLPop(this.redisKey)
-    return result || null
+    return result ? new URL(JSON.parse(result)) : null
   }
 }
