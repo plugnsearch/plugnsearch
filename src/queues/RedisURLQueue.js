@@ -19,6 +19,7 @@ export default class RedisURLQueue extends SimpleURLQueue {
     this.redisLPop = promisify(this.client.lpop).bind(this.client)
     this.redisHMGet = promisify(this.client.hmget).bind(this.client)
     this.redisHMSet = promisify(this.client.hmset).bind(this.client)
+    this.redisDel = promisify(this.client.del).bind(this.client)
   }
 
   async queue (href) {
@@ -47,5 +48,9 @@ export default class RedisURLQueue extends SimpleURLQueue {
   async getNextUrl () {
     const result = await this.redisLPop(this.redisKey)
     return result ? new URL(JSON.parse(result)) : null
+  }
+
+  async clear () {
+    await this.redisDel([this.redisKey, `${this.redisKey}.Done`])
   }
 }

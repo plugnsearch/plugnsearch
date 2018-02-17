@@ -105,4 +105,23 @@ describe('SimpleURLQueue', () => {
       return expect(queue.getNextUrl()).resolves.toEqual(null)
     })
   })
+
+  describe('#clear', () => {
+    beforeEach(async () => {
+      queue = new SimpleURLQueue()
+      await queue.queue('http://item1.com')
+      await queue.queue('http://item2.com')
+      await queue.queue('http://item3.com')
+      await queue.getNextUrl()
+      await queue.clear()
+    })
+
+    it('removes all from current queue', () => {
+      return expect(queue.getNextUrl()).resolves.toEqual(null)
+    })
+
+    it('removes all from alreadyDone', () => {
+      expect(queue.urlsDone).toEqual([])
+    })
+  })
 })

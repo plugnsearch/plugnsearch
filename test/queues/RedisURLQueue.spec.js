@@ -30,6 +30,15 @@ jest.mock('redis', () => ({
     }),
     hmget: jest.fn((key, keys, cb) => {
       cb(mockErrors.hmget, keys.reduce((memo, key) => ({ ...memo, [key]: mockSet[key] }), {}))
+    }),
+    del: jest.fn((keys, cb) => {
+      if (keys.indexOf('urlQueue') !== -1) {
+        mockSet = {}
+      }
+      if (keys.indexOf('urlQueue.Done') !== -1) {
+        mockQueue = []
+      }
+      cb()
     })
   }))
 }))
@@ -182,6 +191,25 @@ describe('RedisURLQueue', () => {
 
       mockErrors.lpop = 'ERROR'
       expect(queue.getNextUrl()).rejects.toEqual('ERROR')
+    })
+  })
+
+  describe('#clear', () => {
+    beforeEach(async () => {
+      queue = new RedisURLQueue({ redisOptions })
+      await queue.queue('http://item1.com')
+      await queue.queue('http://item2.com')
+      await queue.queue('http://item3.com')
+      await queue.getNextUrl()
+      await queue.clear()
+    })
+
+    it('removes all from current queue', () => {
+      expect(mockQueue).toEqual([])
+    })
+
+    it('removes all from alreadyDone', () => {
+      expect(mockSet).toEqual({})
     })
   })
 })

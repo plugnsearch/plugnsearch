@@ -39,4 +39,9 @@ export default class SimpleURLQueue {
 
     return Promise.resolve(url)
   }
+
+  clear () {
+    this.urlsDone = []
+    this.urlsTodo = []
+  }
 }
