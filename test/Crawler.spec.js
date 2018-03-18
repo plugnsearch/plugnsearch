@@ -61,6 +61,22 @@ describe('Crawler', () => {
     })
   })
 
+  describe('#seed', () => {
+    beforeEach(() => {
+      crawler = new Crawler()
+    })
+
+    it('passes the crawler itself as param', done => {
+      crawler
+        .on('finish', reporter => {
+          expect(reporter).toEqual(expect.any(Reporter))
+          done()
+        })
+        .seed([])
+        .then(c => c.start())
+    })
+  })
+
   it('we can set a userAgent', done => {
     crawler = new Crawler({ userAgent: 'Botty' })
     crawler
