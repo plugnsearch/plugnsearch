@@ -37,16 +37,17 @@ describe('Crawler', () => {
     })
 
     it('emits finish directly if called with empty seed', done => {
-      crawler.seed([])
+      crawler
         .on('finish', reporter => {
           expect(reporter).toEqual(expect.any(Reporter))
           done()
         })
-        .start()
+        .seed([])
+        .then(() => crawler.start())
     })
 
     it('puts in the right default userAgent', done => {
-      crawler.seed('http://localhost/item1')
+      crawler
         .on('finish', () => {
           expect(calledOptions[0]).toEqual(expect.objectContaining({
             headers: {
@@ -55,13 +56,14 @@ describe('Crawler', () => {
           }))
           done()
         })
-        .start()
+        .seed('http://localhost/item1')
+        .then(() => crawler.start())
     })
   })
 
   it('we can set a userAgent', done => {
     crawler = new Crawler({ userAgent: 'Botty' })
-    crawler.seed('http://localhost/item1')
+    crawler
       .on('finish', () => {
         expect(calledOptions[0]).toEqual(expect.objectContaining({
           headers: {
@@ -70,7 +72,8 @@ describe('Crawler', () => {
         }))
         done()
       })
-      .start()
+      .seed('http://localhost/item1')
+      .then(() => crawler.start())
   })
 
   describe('app processing', () => {
@@ -100,20 +103,22 @@ describe('Crawler', () => {
           expect(headers).toEqual(headers)
         }
       })
-      crawler.seed(TEST_URL)
+      crawler
         .on('finish', () => done())
-        .start()
+        .seed(TEST_URL)
+        .then(() => crawler.start())
     })
 
     it('app without process method does not hurt', done => {
       crawler.addApp({
       })
-      crawler.seed(TEST_URL)
+      crawler
         .on('finish', reporter => {
           expect(reporter.toJson()[TEST_URL]).toEqual({})
           done()
         })
-        .start()
+        .seed(TEST_URL)
+        .then(() => crawler.start())
     })
 
     it('passes contentType and statusCode to apps process as well', done => {
@@ -123,9 +128,10 @@ describe('Crawler', () => {
           expect(statusCode).toEqual(202)
         }
       })
-      crawler.seed(TEST_URL)
+      crawler
         .on('finish', () => done())
-        .start()
+        .seed(TEST_URL)
+        .then(() => crawler.start())
     })
 
     it('passes the reporter to the process method', done => {
@@ -134,9 +140,10 @@ describe('Crawler', () => {
           expect(typeof report).toEqual('function')
         }
       })
-      crawler.seed(TEST_URL)
+      crawler
         .on('finish', () => done())
-        .start()
+        .seed(TEST_URL)
+        .then(() => crawler.start())
     })
 
     it('passes a queueUrls method that can be used to path further links', done => {
@@ -152,12 +159,13 @@ describe('Crawler', () => {
           ++callCount
         }
       })
-      crawler.seed(TEST_URL)
+      crawler
         .on('finish', () => {
           expect(callCount).toEqual(2)
           done()
         })
-        .start()
+        .seed(TEST_URL)
+        .then(() => crawler.start())
     })
 
     it('also passes jQuery like interface (using cheerio) to process method', done => {
@@ -167,9 +175,10 @@ describe('Crawler', () => {
           expect($('h1').html()).toEqual('Hello World!')
         }
       })
-      crawler.seed(TEST_URL)
+      crawler
         .on('finish', () => done())
-        .start()
+        .seed(TEST_URL)
+        .then(() => crawler.start())
     })
 
     it('does not provide jQuery interface when no app is asking for it', done => {
@@ -182,9 +191,10 @@ describe('Crawler', () => {
           expect($).toBeUndefined()
         }
       })
-      crawler.seed(TEST_URL)
+      crawler
         .on('finish', () => done())
-        .start()
+        .seed(TEST_URL)
+        .then(() => crawler.start())
     })
 
     it('process methods can return a promise', done => {
@@ -202,12 +212,13 @@ describe('Crawler', () => {
           }
         }
       })
-      crawler.seed(TEST_URL)
+      crawler
         .on('finish', () => {
           expect(callCount).toEqual(2)
           done()
         })
-        .start()
+        .seed(TEST_URL)
+        .then(() => crawler.start())
     })
 
     describe('#addApp', () => {
@@ -223,12 +234,13 @@ describe('Crawler', () => {
         crawler.addApp(spy)
 
         expect(spy).toHaveBeenCalledWith({ foo: 'bar' })
-        crawler.seed(TEST_URL)
+        crawler
           .on('finish', () => {
             expect(callCount).toEqual(1)
             done()
           })
-          .start()
+          .seed(TEST_URL)
+          .then(() => crawler.start())
       })
     })
 
@@ -243,12 +255,13 @@ describe('Crawler', () => {
           process: () => {}
         })
         const urlData = { href: TEST_URL, foo: 'bar' }
-        crawler.seed(urlData)
+        crawler
           .on('finish', () => {
             expect(receivedUrl).toEqual(expect.objectContaining(urlData))
             done()
           })
-          .start()
+          .seed(urlData)
+          .then(() => crawler.start())
       })
 
       it('we can add a preRequest callback to change request options', done => {
@@ -273,13 +286,14 @@ describe('Crawler', () => {
             expect(url.toString()).toEqual(TEST_URL + '/?bar&foo')
           }
         })
-        crawler.seed(TEST_URL)
+        crawler
           .on('finish', reporter => {
             expect(callCount).toEqual(11)
             expect(reporter.toJson()[TEST_URL + '/?bar&foo']).toEqual({})
             done()
           })
-          .start()
+          .seed(TEST_URL)
+          .then(() => crawler.start())
       })
 
       it('an error within a preRequest is noted and prohibits request to be done', done => {
@@ -293,7 +307,7 @@ describe('Crawler', () => {
             ++callCount
           }
         })
-        crawler.seed(TEST_URL)
+        crawler
           .on('finish', reporter => {
             expect(callCount).toEqual(0)
             expect(reporter.toJson()[TEST_URL]).toEqual({
@@ -304,7 +318,8 @@ describe('Crawler', () => {
             })
             done()
           })
-          .start()
+          .seed(TEST_URL)
+          .then(() => crawler.start())
       })
 
       it('can be used to make a preflight request (so it can return a promise)', done => {
@@ -333,14 +348,15 @@ describe('Crawler', () => {
             expect(url.toString()).toEqual(TEST_URL + '/?foo?bar')
           }
         })
-        crawler.seed(TEST_URL)
+        crawler
           .on('finish', reporter => {
             expect(callCount).toEqual(11)
             expect(reporter.toJson()[TEST_URL]).toBeUndefined()
             expect(reporter.toJson()[TEST_URL + '/?foo?bar']).toEqual({})
             done()
           })
-          .start()
+          .seed(TEST_URL)
+          .then(() => crawler.start())
       })
 
       it('a rejected promise within preRequest is noted and prohibits request to be done', done => {
@@ -354,7 +370,7 @@ describe('Crawler', () => {
             ++callCount
           }
         })
-        crawler.seed(TEST_URL)
+        crawler
           .on('finish', reporter => {
             expect(callCount).toEqual(0)
             expect(reporter.toJson()[TEST_URL]).toEqual({
@@ -365,7 +381,8 @@ describe('Crawler', () => {
             })
             done()
           })
-          .start()
+          .seed(TEST_URL)
+          .then(() => crawler.start())
       })
     })
 
@@ -383,14 +400,15 @@ describe('Crawler', () => {
             expect(err).toEqual(new Error('BUMM'))
           }
         })
-        crawler.seed(TEST_URL)
+        crawler
           .on('finish', () => {
             expect(callCount).toEqual(1)
             // it is still logged though
             expect(crawler.logger.error).toHaveBeenCalledTimes(1)
             done()
           })
-          .start()
+          .seed(TEST_URL)
+          .then(() => crawler.start())
       })
 
       it('if no processCatch is defined, and a error is thrown it is just logged', done => {
@@ -400,13 +418,14 @@ describe('Crawler', () => {
             throw new Error('BUMM')
           }
         })
-        crawler.seed(TEST_URL)
+        crawler
           .on('finish', () => {
             // it is still logged though
             expect(crawler.logger.error).toHaveBeenCalledTimes(1)
             done()
           })
-          .start()
+          .seed(TEST_URL)
+          .then(() => crawler.start())
       })
 
       it('if no processCatch is defined, the error is reported with one line of stackTrace', () => {
@@ -416,7 +435,7 @@ describe('Crawler', () => {
             throw new Error('BUMM')
           }
         })
-        crawler.seed(TEST_URL)
+        crawler
           .on('finish', reporter => {
             expect(reporter.toJson()).toEqual({
               [TEST_URL]: {
@@ -428,7 +447,8 @@ describe('Crawler', () => {
               }
             })
           })
-          .start()
+          .seed(TEST_URL)
+          .then(() => crawler.start())
       })
     })
 
@@ -452,7 +472,9 @@ describe('Crawler', () => {
             expect(err).toBeUndefined()
           }
         })
-        crawler.seed(TEST_URL).start()
+        crawler
+          .seed(TEST_URL)
+          .then(() => crawler.start())
       })
     })
 
@@ -461,14 +483,15 @@ describe('Crawler', () => {
         crawler.addApp({
           process: () => {}
         })
-        crawler.seed(TEST_URL)
+        crawler
           .on('finish', reporter => {
             expect(reporter.toJson()).toEqual({
               [TEST_URL]: {}
             })
             done()
           })
-          .start()
+          .seed(TEST_URL)
+          .then(() => crawler.start())
       })
 
       it('every app can include its information to be added to report', done => {
@@ -482,7 +505,7 @@ describe('Crawler', () => {
             report('infos', { 'great': 'stuff' })
           }
         })
-        crawler.seed(TEST_URL)
+        crawler
           .on('finish', reporter => {
             expect(reporter.toJson()).toEqual({
               [TEST_URL]: {
@@ -492,7 +515,8 @@ describe('Crawler', () => {
             })
             done()
           })
-          .start()
+          .seed(TEST_URL)
+          .then(() => crawler.start())
       })
 
       it('does not call the same url with empty data when already appearing in report', done => {
@@ -503,12 +527,13 @@ describe('Crawler', () => {
         crawler.addApp({
           process: ({ report }) => { report('foo', 'bar') }
         })
-        crawler.seed(TEST_URL)
+        crawler
           .on('finish', reporter => {
             expect(stubReporter.report).toHaveBeenCalledTimes(1)
             done()
           })
-          .start()
+          .seed(TEST_URL)
+          .then(() => crawler.start())
       })
     })
 
@@ -531,12 +556,13 @@ describe('Crawler', () => {
           }
         })
 
-        crawler.seed(TEST_URL)
+        crawler
           .on('finish', () => {
             expect(callCount).toEqual(1)
             done()
           })
-          .start()
+          .seed(TEST_URL)
+          .then(() => crawler.start())
       })
 
       it('is never called if the contentType does not match one of multiple strings', done => {
@@ -557,12 +583,13 @@ describe('Crawler', () => {
           }
         })
 
-        crawler.seed(TEST_URL)
+        crawler
           .on('finish', () => {
             expect(callCount).toEqual(1)
             done()
           })
-          .start()
+          .seed(TEST_URL)
+          .then(() => crawler.start())
       })
 
       it('is never called if the contentType does not match a regex', done => {
@@ -583,12 +610,13 @@ describe('Crawler', () => {
           }
         })
 
-        crawler.seed(TEST_URL)
+        crawler
           .on('finish', () => {
             expect(callCount).toEqual(1)
             done()
           })
-          .start()
+          .seed(TEST_URL)
+          .then(() => crawler.start())
       })
     })
   })
@@ -747,7 +775,6 @@ describe('Crawler', () => {
         }
       })
       crawler
-        .seed(['http://test.de'])
         .on('finish', () => {
           expect(crawler.benchmarkReport()).toEqual([
             {
@@ -764,7 +791,8 @@ describe('Crawler', () => {
           ])
           done()
         })
-        .start()
+        .seed(['http://test.de'])
+        .then(() => crawler.start())
     })
 
     it('adds times to benchmark although there is a promise rejected in preRequest', done => {
@@ -795,7 +823,6 @@ describe('Crawler', () => {
         }
       })
       crawler
-        .seed(['http://test.de'])
         .on('finish', () => {
           expect(crawler.benchmarkReport()).toEqual([
             {
@@ -812,7 +839,8 @@ describe('Crawler', () => {
           ])
           done()
         })
-        .start()
+        .seed(['http://test.de'])
+        .then(() => crawler.start())
     })
   })
 })

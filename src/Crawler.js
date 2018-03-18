@@ -97,8 +97,8 @@ export default class Crawler extends EventEmitter {
     return this
   }
 
-  seed (urls) {
-    this.queue.queue(urls)
+  async seed (urls) {
+    await this.queue.queue(urls)
     return this
   }
 
@@ -107,8 +107,8 @@ export default class Crawler extends EventEmitter {
     return this
   }
 
-  test (testUrl) {
-    this.queue.queue(testUrl)
+  async test (testUrl) {
+    await this.queue.queue(testUrl)
     this.snapshotFile = path.join(this.snapshotDir, testUrl.replace(/[^a-zA-Z0-9_]/g, '-'))
     // Use a clean and simple JSONReporter for testing
     this.reporter = new JSONReporter()

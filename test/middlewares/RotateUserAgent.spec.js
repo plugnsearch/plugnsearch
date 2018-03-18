@@ -76,7 +76,7 @@ describe('apps/RotateUserAgent', () => {
     it('we can set multiple userAgents the crawler  cycles through', done => {
       crawler = new Crawler({ userAgents: ['Botty', 'GreatBot', 'VeryNiceBotIndeed'] })
       crawler.addApp(config => new RotateUserAgent(config))
-      crawler.seed(['http://localhost/item1', 'http://localhost/item2', 'http://localhost/item3'])
+      crawler
         .on('finish', () => {
           expect(calledOptions[0]).toEqual(expect.objectContaining({
             headers: {
@@ -97,7 +97,8 @@ describe('apps/RotateUserAgent', () => {
           }))
           done()
         })
-        .start()
+        .seed(['http://localhost/item1', 'http://localhost/item2', 'http://localhost/item3'])
+        .then(() => crawler.start())
     })
   })
 })

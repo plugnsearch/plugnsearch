@@ -33,12 +33,12 @@ export default class HTTPLinkExpander {
             }
             return
           }
-          queueUrls(urls.map(href => new URL({
+          return queueUrls(urls.map(href => new URL({
             href,
             depth: (url.depth || 0) + 1
           })))
         } else {
-          queueUrls(urls)
+          return queueUrls(urls)
         }
       })
   }

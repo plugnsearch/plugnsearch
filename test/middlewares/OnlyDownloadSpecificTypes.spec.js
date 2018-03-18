@@ -198,7 +198,7 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
         onlySpecificContentTypes: ['text/html', 'text/plain']
       })
       crawler.addApp(config => new OnlyDownloadSpecificTypes(config))
-      crawler.seed(['http://localhost/?text/html', 'http://localhost/?audio/mp3'])
+      crawler
         .on('finish', (reporter) => {
           expect(reporter.toJson()).toEqual({
             'http://localhost/?text/html': {},
@@ -208,7 +208,8 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
           })
           done()
         })
-        .start()
+        .seed(['http://localhost/?text/html', 'http://localhost/?audio/mp3'])
+        .then(() => crawler.start())
     })
 
     it('when error happens', done => {
@@ -217,7 +218,7 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
         onlySpecificContentTypes: ['text/html', 'text/plain']
       })
       crawler.addApp(config => new OnlyDownloadSpecificTypes(config))
-      crawler.seed(['http://localhost/?text/html', 'http://localhost/?audio/mp3'])
+      crawler
         .on('finish', (reporter) => {
           expect(reporter.toJson()).toEqual({
             'http://localhost/?text/html': {
@@ -229,7 +230,8 @@ describe('apps/OnlyDownloadSpecificTypes', () => {
           })
           done()
         })
-        .start()
+        .seed(['http://localhost/?text/html', 'http://localhost/?audio/mp3'])
+        .then(() => crawler.start())
     })
   })
 })

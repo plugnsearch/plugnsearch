@@ -1,6 +1,7 @@
 /* eslint-env jest */
 import redis from 'redis'
 import URL from '../../src/URL'
+import Crawler from '../../src/Crawler'
 import RedisURLQueue from '../../src/queues/RedisURLQueue'
 
 let mockSet = {}
@@ -151,6 +152,37 @@ describe('RedisURLQueue integration spec', () => {
           })
         })
       })
+    })
+  })
+
+  describe('used in a Crawler', () => {
+    let crawler
+    class StubApp {
+      process ({ queueUrls }) {
+        return queueUrls('http://item2.com')
+      }
+    }
+
+    it('works as expected', done => {
+      expect.assertions(1)
+      crawler = new Crawler({
+        queue: new RedisURLQueue({ redisKey, redisOptions })
+      })
+      crawler.addApp(() => new StubApp())
+      crawler
+        .seed('http://localhost/item1')
+        .then(() => {
+          crawler
+            .on('finish', reporter => {
+              expect(Object.keys(reporter.toJson())).toEqual([
+                'http://localhost/item1',
+                'http://item2.com'
+              ])
+
+              done()
+            })
+            .start()
+        })
     })
   })
 })

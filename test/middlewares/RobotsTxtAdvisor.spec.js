@@ -131,13 +131,14 @@ describe('apps/RobotsTxtAdvisor', () => {
     it('does not crawl pages the bot is forbidden to crawl by robots.txt', done => {
       crawler = new Crawler({ userAgent: 'foobot' })
       crawler.addApp(config => new RobotsTxtAdvisor(config))
-      crawler.seed(['http://localhost/item1', 'http://localhost/not-here/something', 'http://localhost/item3'])
+      crawler
         .on('finish', () => {
           expect(calledOptions.length).toEqual(3)
           expect(calledOptions.map(x => x.uri)).not.toContain('http://localhost/not-here/something')
           done()
         })
-        .start()
+        .seed(['http://localhost/item1', 'http://localhost/not-here/something', 'http://localhost/item3'])
+        .then(() => crawler.start())
     })
   })
 })

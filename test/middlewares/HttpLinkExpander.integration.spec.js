@@ -33,16 +33,19 @@ describe('middlewares/HttpLinkExpander integration test', () => {
     crawler = new Crawler({})
     crawler.addApp(config => new HttpLinkExpander(config))
     crawler.seed('http://localhost/item1')
-      .on('finish', () => {
-        expect(calledOptions.map(opt => opt.uri)).toEqual([
-          'http://localhost/item1',
-          'http://localhost/item42',
-          'http://localhost/item23'
-        ])
+      .then(() => {
+        crawler
+          .on('finish', () => {
+            expect(calledOptions.map(opt => opt.uri)).toEqual([
+              'http://localhost/item1',
+              'http://localhost/item42',
+              'http://localhost/item23'
+            ])
 
-        done()
+            done()
+          })
+          .start()
       })
-      .start()
   })
 
   describe('when having maxDepth defined', () => {
@@ -58,22 +61,25 @@ describe('middlewares/HttpLinkExpander integration test', () => {
       crawler = new Crawler({ maxDepth: 2, maxDepthLogging: true })
       crawler.addApp(config => new HttpLinkExpander(config))
       crawler.seed('http://localhost/item1')
-        .on('finish', reporter => {
-          expect(calledOptions.map(opt => opt.uri)).toEqual([
-            'http://localhost/item1',
-            'http://localhost/item11',
-            'http://localhost/item111'
-          ])
+        .then(() => {
+          crawler
+            .on('finish', reporter => {
+              expect(calledOptions.map(opt => opt.uri)).toEqual([
+                'http://localhost/item1',
+                'http://localhost/item11',
+                'http://localhost/item111'
+              ])
 
-          expect(reporter.toJson()).toEqual(expect.objectContaining({
-            'http://localhost/item111': {
-              skippedLinks: [ 'http://localhost/item1111' ]
-            }
-          }))
+              expect(reporter.toJson()).toEqual(expect.objectContaining({
+                'http://localhost/item111': {
+                  skippedLinks: [ 'http://localhost/item1111' ]
+                }
+              }))
 
-          done()
+              done()
+            })
+            .start()
         })
-        .start()
     })
   })
 })
