@@ -159,7 +159,8 @@ describe('RedisURLQueue integration spec', () => {
     let crawler
     class StubApp {
       process ({ queueUrls }) {
-        return queueUrls('http://item2.com')
+        queueUrls('http://item2.com')
+        queueUrls('http://item3.com')
       }
     }
 
@@ -176,7 +177,8 @@ describe('RedisURLQueue integration spec', () => {
             .on('finish', reporter => {
               expect(Object.keys(reporter.toJson())).toEqual([
                 'http://localhost/item1',
-                'http://item2.com'
+                'http://item2.com',
+                'http://item3.com'
               ])
 
               done()
