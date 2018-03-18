@@ -29,13 +29,15 @@ export default class RedisURLQueue extends SimpleURLQueue {
 
     if (this.skipDuplicates) {
       urls = uniqBy(urls, u => u.normalizedHref)
-      const values = await this.redisHMGet(`${this.redisKey}.Done`, urls.map(u => u.normalizedHref))
-      const dedupedUrls = urls.filter((u, i) => !values[i])
-      if (dedupedUrls.length > 0) {
-        const setUrls = dedupedUrls.reduce((memo, url) => ({ ...memo, [url.normalizedHref]: Date.now() }), {})
-        await this.redisHMSet(`${this.redisKey}.Done`, setUrls)
+      if (urls.length) {
+        const values = await this.redisHMGet(`${this.redisKey}.Done`, urls.map(u => u.normalizedHref))
+        const dedupedUrls = urls.filter((u, i) => !values[i])
+        if (dedupedUrls.length > 0) {
+          const setUrls = dedupedUrls.reduce((memo, url) => ({ ...memo, [url.normalizedHref]: Date.now() }), {})
+          await this.redisHMSet(`${this.redisKey}.Done`, setUrls)
+        }
+        urls = dedupedUrls
       }
-      urls = dedupedUrls
     }
 
     const [validUrls, invalidUrls] = partition(urls, u => u.isValid)
