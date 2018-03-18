@@ -179,6 +179,7 @@ export default class Crawler extends EventEmitter {
   runApps (url, response) {
     let $
     let reportCalled = false
+    const queuePromises = []
     const params = {
       report: (type, data) => {
         this.reporter.report(url.toString(), type, data)
@@ -189,7 +190,9 @@ export default class Crawler extends EventEmitter {
       headers: response.headers,
       statusCode: response.statusCode,
       contentType: (response.headers || {})['content-type'],
-      queueUrls: (urls) => this.queue.queue(urls),
+      queueUrls: (urls) => {
+        queuePromises.push(this.queue.queue(urls))
+      },
       response
     }
     return Promise.all(this.doBenchmarking('processTimes', reportTime => (
@@ -226,7 +229,8 @@ export default class Crawler extends EventEmitter {
         } else {
           reportTime && reportTime.skip()
         }
-        return Promise.resolve()
+        // Finally wait for all the urls to be queued
+        return Promise.all(queuePromises)
       })
     ))).then(() => {
       // make sure URL is noted in report

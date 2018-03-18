@@ -619,6 +619,60 @@ describe('Crawler', () => {
           .then(() => crawler.start())
       })
     })
+
+    describe('queueing URLS', () => {
+      let urlQueue
+      let urlQueueDone
+      let itemsDone
+
+      beforeEach(() => {
+        urlQueue = []
+        urlQueueDone = []
+        itemsDone = 0
+        crawler = new Crawler({
+          // a very simple but async queue implementation
+          queue: {
+            queue: (url) => {
+              return new Promise(resolve => {
+                setTimeout(() => {
+                  if (urlQueueDone.indexOf(url.toString()) === -1) {
+                    urlQueue.push(url.toString())
+                    urlQueueDone.push(url.toString())
+                  }
+                  resolve()
+                }, 10)
+              })
+            },
+            normalizeUrl: x => x,
+            getNextUrl: () => {
+              const url = urlQueue.shift()
+              if (url) ++itemsDone
+              return Promise.resolve(url)
+            }
+          }
+        })
+      })
+
+      it('we can call queue URLs multiple times and it will wait for all queues to be done', done => {
+        expect.assertions(1)
+
+        crawler.addApp({
+          process: ({ url, queueUrls }) => {
+            queueUrls('http://one.com')
+            queueUrls('http://two.com')
+            queueUrls('http://three.com')
+          }
+        })
+
+        crawler
+          .on('finish', () => {
+            expect(itemsDone).toEqual(4)
+            done()
+          })
+          .seed(TEST_URL)
+          .then(() => crawler.start())
+      })
+    })
   })
 
   describe('testing methods using snapshots', () => {
