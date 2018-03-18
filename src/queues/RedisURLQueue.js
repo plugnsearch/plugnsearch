@@ -30,16 +30,20 @@ export default class RedisURLQueue extends SimpleURLQueue {
     if (this.skipDuplicates) {
       urls = uniqBy(urls, u => u.normalizedHref)
       const values = await this.redisHMGet(`${this.redisKey}.Done`, urls.map(u => u.normalizedHref))
-      const dedupedUrls = urls.filter((u, i) => !values[u.normalizedHref])
-      const setUrls = dedupedUrls.reduce((memo, url) => ({ ...memo, [url.normalizedHref]: Date.now() }), {})
-      await this.redisHMSet(`${this.redisKey}.Done`, setUrls)
+      const dedupedUrls = urls.filter((u, i) => !values[i])
+      if (dedupedUrls.length > 0) {
+        const setUrls = dedupedUrls.reduce((memo, url) => ({ ...memo, [url.normalizedHref]: Date.now() }), {})
+        await this.redisHMSet(`${this.redisKey}.Done`, setUrls)
+      }
       urls = dedupedUrls
     }
 
     const [validUrls, invalidUrls] = partition(urls, u => u.isValid)
     // That .href is needed because of redis making a toString otherwise. We need a string there
-    await this.redisRPush(this.redisKey, validUrls.map(u => JSON.stringify(u)))
-    if (invalidUrls.length) {
+    if (validUrls.length > 0) {
+      await this.redisRPush(this.redisKey, validUrls.map(u => JSON.stringify(u)))
+    }
+    if (invalidUrls.length > 0) {
       return { invalidUrls }
     }
     return null

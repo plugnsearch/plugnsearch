@@ -29,7 +29,7 @@ jest.mock('redis', () => ({
       cb && cb(mockErrors.hmset)
     }),
     hmget: jest.fn((key, keys, cb) => {
-      cb(mockErrors.hmget, keys.reduce((memo, key) => ({ ...memo, [key]: mockSet[key] }), {}))
+      cb(mockErrors.hmget, keys.map(key => mockSet[key]))
     }),
     del: jest.fn((keys, cb) => {
       if (keys.indexOf('urlQueue') !== -1) {
