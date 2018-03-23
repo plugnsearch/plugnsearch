@@ -20,7 +20,8 @@
   ],
   "scripts": {
     "test": "jest",
-    "start": "babel-node src/main.js"
+    "start": "babel-node src/main.js",
+    "lint": "eslint src/"
   },
   "author": "g.tavonius@gmail.com",
   "license": "MIT",

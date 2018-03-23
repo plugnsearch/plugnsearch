@@ -3,4 +3,5 @@ node_modules/
 test/snapshots/
 TODO.txt
 error.log
+yarn-error.log
 .DS_Store
