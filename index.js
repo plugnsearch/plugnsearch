@@ -10,6 +10,7 @@ export ThrottleRequests from './src/middlewares/ThrottleRequests'
 export JSONReporter from './src/reporters/JSONReporter'
 export JSONStreamReporter from './src/reporters/JSONStreamReporter'
 export HttpPostReporter from './src/reporters/HttpPostReporter'
+export ZeroMqReporter from './src/reporters/ZeroMqReporter'
 
 export checkContentType from './src/utils/checkContentType'
 export dataExtractor from './src/utils/dataExtractor'
