@@ -36,7 +36,8 @@
     "request": "^2.83.0",
     "robots-parser": "^1.0.1",
     "stacktrace-parser": "^0.1.4",
-    "winston": "^3.0.0-rc1"
+    "winston": "^3.0.0-rc1",
+    "zeromq": "^4.6.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
