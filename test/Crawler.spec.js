@@ -5,14 +5,13 @@ import sinon from 'sinon'
 import Crawler from '../src/Crawler'
 import Reporter from '../src/reporters/JSONReporter'
 
-let mockRequest = jest.fn()
-jest.mock('request', () => (...args) => mockRequest.apply(null, args))
+// TODO: returning a promise on start, could make tests easier
 
 describe('Crawler', () => {
   let crawler
   let requestError
   let getMockResponse
-  let calledOptions
+  let mockRequester
 
   beforeEach(() => {
     getMockResponse = ({ uri }) => ({
@@ -20,20 +19,18 @@ describe('Crawler', () => {
         href: uri
       }
     })
-    calledOptions = []
-    mockRequest.mockImplementation((options, cb) => {
-      calledOptions.push(options)
-      cb(requestError, getMockResponse(options))
-    })
-  })
-
-  afterEach(() => {
-    mockRequest.mockClear()
+    mockRequester = {
+      request: jest.fn(
+        options => requestError ? Promise.reject(requestError) : Promise.resolve(getMockResponse(options))
+      )
+    }
   })
 
   describe('with default params', () => {
     beforeEach(() => {
-      crawler = new Crawler()
+      crawler = new Crawler({
+        requester: mockRequester
+      })
     })
 
     it('emits finish directly if called with empty seed', done => {
@@ -49,7 +46,7 @@ describe('Crawler', () => {
     it('puts in the right default userAgent', done => {
       crawler
         .on('finish', () => {
-          expect(calledOptions[0]).toEqual(expect.objectContaining({
+          expect(mockRequester.request).toHaveBeenCalledWith(expect.objectContaining({
             headers: {
               'User-Agent': 'AwesomeSearchBot'
             }
@@ -63,7 +60,9 @@ describe('Crawler', () => {
 
   describe('#seed', () => {
     beforeEach(() => {
-      crawler = new Crawler()
+      crawler = new Crawler({
+        requester: mockRequester
+      })
     })
 
     it('passes the crawler itself as param', done => {
@@ -78,10 +77,10 @@ describe('Crawler', () => {
   })
 
   it('we can set a userAgent', done => {
-    crawler = new Crawler({ userAgent: 'Botty' })
+    crawler = new Crawler({ requester: mockRequester, userAgent: 'Botty' })
     crawler
       .on('finish', () => {
-        expect(calledOptions[0]).toEqual(expect.objectContaining({
+        expect(mockRequester.request).toHaveBeenCalledWith(expect.objectContaining({
           headers: {
             'User-Agent': 'Botty'
           }
@@ -108,7 +107,9 @@ describe('Crawler', () => {
         headers: headers,
         statusCode: 202
       })
-      crawler = new Crawler()
+      crawler = new Crawler({
+        requester: mockRequester
+      })
     })
 
     it('sends page body, response headers and url to process method of given app', done => {
@@ -240,6 +241,7 @@ describe('Crawler', () => {
     describe('#addApp', () => {
       it('can be also a function that receives additional config parameters', done => {
         crawler = new Crawler({
+          requester: mockRequester,
           userAgent: 'Somebot',
           foo: 'bar'
         })
@@ -538,6 +540,7 @@ describe('Crawler', () => {
       it('does not call the same url with empty data when already appearing in report', done => {
         const stubReporter = { report: jest.fn() }
         crawler = new Crawler({
+          requester: mockRequester,
           reporter: stubReporter
         })
         crawler.addApp({
@@ -646,6 +649,7 @@ describe('Crawler', () => {
         urlQueueDone = []
         itemsDone = 0
         crawler = new Crawler({
+          requester: mockRequester,
           // a very simple but async queue implementation
           queue: {
             queue: (url) => {
@@ -711,6 +715,8 @@ describe('Crawler', () => {
       })
 
       crawler = new Crawler({
+        requester: mockRequester,
+        // TODO: snapshot in testrequester
         snapshotDir: path.join(__dirname, 'snapshots/')
       })
       crawler.addApp({
@@ -753,6 +759,7 @@ describe('Crawler', () => {
     describe('if there is a snapshot already', () => {
       beforeEach(done => {
         const preCrawler = new Crawler({
+          requester: mockRequester,
           snapshotDir: path.join(__dirname, 'snapshots/')
         })
         preCrawler.on('finish', () => done())
@@ -789,12 +796,17 @@ describe('Crawler', () => {
     })
 
     it('if no benchmarking is wanted, benchmarkReport is null', () => {
-      crawler = new Crawler()
+      crawler = new Crawler({
+        requester: mockRequester
+      })
       expect(crawler.benchmarkReport()).toEqual(null)
     })
 
     it('if benchmarking is requested, but we have done anything yet', () => {
-      crawler = new Crawler({ benchmark: true })
+      crawler = new Crawler({
+        requester: mockRequester,
+        benchmark: true
+      })
       crawler.addApp({
         name: 'First App',
         process: () => {}
@@ -818,7 +830,10 @@ describe('Crawler', () => {
     })
 
     it('if benchmarking is requested, and we have collected data of one run, it reports the seconds (and milliseconds resolution)', done => {
-      crawler = new Crawler({ benchmark: true })
+      crawler = new Crawler({
+        requester: mockRequester,
+        benchmark: true
+      })
       crawler.addApp({
         name: 'First App',
         noCheerio: true,
@@ -866,7 +881,10 @@ describe('Crawler', () => {
     })
 
     it('adds times to benchmark although there is a promise rejected in preRequest', done => {
-      crawler = new Crawler({ benchmark: true })
+      crawler = new Crawler({
+        requester: mockRequester,
+        benchmark: true
+      })
       crawler.addApp({
         name: 'First App',
         noCheerio: true,

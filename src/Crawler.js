@@ -9,6 +9,7 @@ import isArray from 'lodash/isArray'
 import checkContentType from './utils/checkContentType'
 import SimpleURLQueue from './queues/SimpleURLQueue'
 import JSONReporter from './reporters/JSONReporter'
+import Requester from './requesters/Requester'
 
 const callAppPreRequestsInSeries = (series, preRequestParams, reportTime) => Promise.all([series.reduce(
   (memo, app) => memo.then(() => {
@@ -51,6 +52,10 @@ export default class Crawler extends EventEmitter {
      */
     reporter = new JSONReporter(),
     /**
+     * The default Requester just takes the request options and returns a promise
+     */
+    requester = new Requester(),
+    /**
      * Use this directory to put in snapshot files for test drive
      */
     snapshotDir = 'snapshots/',
@@ -69,6 +74,7 @@ export default class Crawler extends EventEmitter {
     this.userAgent = userAgent
     this.reporter = reporter
     this.logger = logger
+    this.requester = requester
     this.snapshotDir = snapshotDir
     this.benchmarks = benchmark ? [] : null
 
@@ -275,14 +281,12 @@ export default class Crawler extends EventEmitter {
           }
         })
       } else {
-        request(requestOptions, (err, response) => {
-          if (err) {
+        this.requester.request(requestOptions)
+          .catch(err => {
             this.logError(err)
             reject(err)
-          } else {
-            resolve(response)
-          }
-        })
+          })
+          .then(resolve)
       }
     })
   }
