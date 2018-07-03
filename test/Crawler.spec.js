@@ -458,7 +458,7 @@ describe('Crawler', () => {
                 'error': {
                   type: 'AppError',
                   message: 'process method failed because of Error: BUMM',
-                  stackTrace: expect.stringMatching('at /Users/calamari/work/websearch/test/Crawler.spec.js:')
+                  stackTrace: expect.stringMatching('test/Crawler.spec.js:')
                 }
               }
             })
