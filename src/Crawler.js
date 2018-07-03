@@ -107,13 +107,16 @@ export default class Crawler extends EventEmitter {
 
   start () {
     this.tick()
-    return this
+    return new Promise((resolve) => {
+      this.startPromiseResolver = resolve
+    })
   }
 
   async tick () {
     const url = await this.queue.getNextUrl()
     if (!url) {
       this.emit('finish', this.reporter)
+      if (this.startPromiseResolver) this.startPromiseResolver(this.reporter)
       return
     }
     this.runPrequests(url, this.createRequestOptions())

@@ -3,8 +3,6 @@ import sinon from 'sinon'
 import Crawler from '../src/Crawler'
 import Reporter from '../src/reporters/JSONReporter'
 
-// TODO: returning a promise on start, could make tests easier
-
 describe('Crawler', () => {
   let crawler
   let requestError
@@ -39,6 +37,11 @@ describe('Crawler', () => {
         })
         .seed([])
         .then(() => crawler.start())
+    })
+
+    it('crawler start returns a promise that reolves when finish is called', async () => {
+      const reporter = await crawler.seed([]).then(() => crawler.start())
+      expect(reporter).toEqual(expect.any(Reporter))
     })
 
     it('puts in the right default userAgent', done => {
@@ -161,7 +164,7 @@ describe('Crawler', () => {
         .then(() => crawler.start())
     })
 
-    it('passes a queueUrls method that can be used to path further links', done => {
+    it('passes a queueUrls method that can be used to path further links', async () => {
       let callCount = 0
       crawler.addApp({
         process: ({ url, queueUrls }) => {
@@ -174,13 +177,10 @@ describe('Crawler', () => {
           ++callCount
         }
       })
-      crawler
-        .on('finish', () => {
-          expect(callCount).toEqual(2)
-          done()
-        })
+      await crawler
         .seed(TEST_URL)
         .then(() => crawler.start())
+      expect(callCount).toEqual(2)
     })
 
     it('also passes jQuery like interface (using cheerio) to process method', done => {
