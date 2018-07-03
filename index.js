@@ -20,7 +20,7 @@ export SimpleURLQueue from './src/queues/SimpleURLQueue'
 export RedisURLQueue from './src/queues/RedisURLQueue'
 export NoQueue from './src/queues/NoQueue'
 
-export Requester from './src/requester/Requester'
-export TestRunRequester from './src/requester/TestRunRequester'
+export Requester from './src/requesters/Requester'
+export TestRunRequester from './src/requesters/TestRunRequester'
 
 export URL from './src/URL'
