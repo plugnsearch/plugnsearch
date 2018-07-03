@@ -1,8 +1,5 @@
 import EventEmitter from 'events'
-import fs from 'fs'
-import path from 'path'
 import StackTraceParser from 'stacktrace-parser'
-import request from 'request'
 import cheerio from 'cheerio'
 import isArray from 'lodash/isArray'
 
@@ -113,15 +110,7 @@ export default class Crawler extends EventEmitter {
     return this
   }
 
-  async test (testUrl) {
-    await this.queue.queue(testUrl)
-    this.snapshotFile = path.join(this.snapshotDir, testUrl.replace(/[^a-zA-Z0-9_]/g, '-'))
-    // Use a clean and simple JSONReporter for testing
-    this.reporter = new JSONReporter()
-    this.tick(true)
-  }
-
-  async tick (isTestRun) {
+  async tick () {
     const url = await this.queue.getNextUrl()
     if (!url) {
       this.emit('finish', this.reporter)
@@ -146,12 +135,12 @@ export default class Crawler extends EventEmitter {
       .then(requestOptions => {
         // This means, we just catched an error in preRequest
         if (!requestOptions) return
-        return this.createRequest(requestOptions, isTestRun)
-        // run all the process methods of registered apps
-        .then(response => this.runApps(url, response))
-        // if fail or success, we process the next URL
-        .then(() => this.tick())
-        .catch(() => this.tick())
+        return this.createRequest(requestOptions)
+          // run all the process methods of registered apps
+          .then(response => this.runApps(url, response))
+          // if fail or success, we process the next URL
+          .then(() => this.tick())
+          .catch(() => this.tick())
       })
   }
 
@@ -245,50 +234,13 @@ export default class Crawler extends EventEmitter {
   }
 
   // @private
-  createRequest (requestOptions, isTestRun) {
-    return new Promise((resolve, reject) => {
-      // This part really feels, that it should not belong in the real Crawler implementation,
-      // but I don't know where it should go else. For now it works and helps. So lets see…
-      if (isTestRun) {
-        fs.readFile(this.snapshotFile, (err, snapResponse) => {
-          if (err) {
-            request(requestOptions, (err, response) => {
-              if (err) {
-                this.logError(err)
-                reject(err)
-              } else {
-                fs.writeFile(this.snapshotFile, JSON.stringify({
-                  body: response.body,
-                  headers: response.headers,
-                  statusCode: response.statusCode,
-                  contentType: (response.headers || {})['content-type']
-                }), (err) => {
-                  if (err) {
-                    this.logError(err)
-                  }
-                  resolve(response)
-                })
-              }
-            })
-          } else {
-            const response = JSON.parse(snapResponse)
-            resolve({
-              body: response.body,
-              headers: response.headers,
-              statusCode: response.statusCode,
-              contentType: response.contentType
-            })
-          }
-        })
-      } else {
-        this.requester.request(requestOptions)
-          .catch(err => {
-            this.logError(err)
-            reject(err)
-          })
-          .then(resolve)
-      }
-    })
+  async createRequest (requestOptions) {
+    try {
+      return this.requester.request(requestOptions)
+    } catch (err) {
+      this.logError(err)
+      throw err
+    }
   }
 
   // @private
