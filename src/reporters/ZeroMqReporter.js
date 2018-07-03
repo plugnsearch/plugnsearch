@@ -1,6 +1,6 @@
 import zeromq from 'zeromq'
 
-const DEFAULT_URL =  process.env.ZMQ_PUB_ADDRESS || 'tcp://127.0.0.1:3000'
+const DEFAULT_URL = process.env.ZMQ_PUB_ADDRESS || 'tcp://127.0.0.1:3000'
 const DEFAULT_CHANNEL = 'plugnsearch-zero'
 
 export default class ZeroMqReporter {
