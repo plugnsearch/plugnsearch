@@ -1,6 +1,6 @@
-import isArray from 'lodash/isArray'
+const isArray = require('lodash/isArray')
 
-export default class Reporter {
+module.exports = class Reporter {
   constructor () {
     this.data = {}
   }

@@ -1,7 +1,7 @@
-import { URL as NodeURL } from 'url'
-import normalizeUrl from 'normalize-url'
+const NodeURL = require('url').URL
+const normalizeUrl = require('normalize-url')
 
-export default class URL {
+module.exports = class URL {
   constructor (url) {
     if (typeof url === 'string') {
       this.href = url

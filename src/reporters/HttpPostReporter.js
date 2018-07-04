@@ -1,6 +1,6 @@
-import request from 'request'
+const request = require('request')
 
-export default class HttpPostReporter {
+module.exports = class HttpPostReporter {
   constructor ({ url }) {
     this.postUrl = url
   }

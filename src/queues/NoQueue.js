@@ -1,12 +1,12 @@
-import isArray from 'lodash/isArray'
+const isArray = require('lodash/isArray')
 
-import URL from '../URL'
+const URL = require('../URL')
 
 /**
  * This queue is not really a quque, just offers the similar interface, but you cannot queue any more
  * items then originally are in
  */
-export default class SimpleURLQueue {
+module.exports = class SimpleURLQueue {
   urlsTodo = []
 
   constructor ({ seedUrls = [] } = {}) {

@@ -1,5 +1,7 @@
 /* eslint-env jest */
-import ZeroMqReporter from '../../src/reporters/ZeroMqReporter'
+const {
+  ZeroMqReporter
+} = require('../../')
 
 let mockSock = {
   bindSync: jest.fn(),

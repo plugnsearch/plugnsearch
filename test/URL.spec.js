@@ -1,5 +1,7 @@
 /* eslint-env jest */
-import URL from '../src/URL'
+const {
+  URL
+} = require('../')
 
 describe('URL', () => {
   const VALID_URL = 'http://www.some.where'

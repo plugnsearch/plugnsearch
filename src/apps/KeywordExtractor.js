@@ -1,6 +1,6 @@
-import Occurences from 'occurences'
+const Occurences = require('occurences')
 
-export default class KeywordExtractor {
+module.exports = class KeywordExtractor {
   name = 'KeywordExtractor'
   noCheerio = true
 

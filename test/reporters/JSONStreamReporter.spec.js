@@ -1,12 +1,14 @@
 /* eslint-env jest */
-import path from 'path'
-import fs from 'fs'
-import Reporter from '../../src/reporters/JSONStreamReporter'
-import URL from '../../src/URL'
+const path = require('path')
+const fs = require('fs')
+const {
+  URL,
+  JSONStreamReporter
+} = require('../../')
 
 const tmpPath = path.join(__dirname, '../tmp')
 
-describe('Reporter', () => {
+describe('JSONStreamReporter', () => {
   let reporter
   let filename
 
@@ -17,7 +19,7 @@ describe('Reporter', () => {
   })
   beforeEach(() => {
     filename = path.join(tmpPath, 'test-stream-report.json')
-    reporter = new Reporter({
+    reporter = new JSONStreamReporter({
       filename
     })
   })
@@ -94,7 +96,7 @@ describe('Reporter', () => {
   describe('when having set a fileSizeLimit', () => {
     beforeEach(() => {
       filename = path.join(tmpPath, 'limited-stream-report.json')
-      reporter = new Reporter({
+      reporter = new JSONStreamReporter({
         filename,
         fileLimitSize: 200 // bytes
       })
@@ -154,7 +156,7 @@ describe('Reporter', () => {
   describe('when the given filename does not end on .json', () => {
     beforeEach(() => {
       filename = path.join(tmpPath, 'test-stream-report')
-      reporter = new Reporter({
+      reporter = new JSONStreamReporter({
         filename,
         fileLimitSize: 200 // bytes
       })

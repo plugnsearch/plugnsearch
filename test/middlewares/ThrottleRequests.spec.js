@@ -1,7 +1,9 @@
 /* eslint-env jest */
-import sinon from 'sinon'
-import Crawler from '../../src/Crawler'
-import ThrottleRequests from '../../src/middlewares/ThrottleRequests'
+const sinon = require('sinon')
+const {
+  Crawler,
+  ThrottleRequests
+} = require('../../')
 
 let mockRequest = jest.fn()
 jest.mock('request', () => (...args) => mockRequest.apply(null, args))

@@ -1,8 +1,8 @@
-import request from 'request'
+const request = require('request')
 
-import checkContentType from '../utils/checkContentType'
+const checkContentType = require('../utils/checkContentType')
 
-export class UninterestingError {}
+class UninterestingError {}
 
 /**
  * This app sends out head requests before real requests are going out and checks if
@@ -10,7 +10,7 @@ export class UninterestingError {}
  * with a note
  * It needs the `onlySpecificContentTypes` config in app to be set
  */
-export default class OnlyDownloadSpecificTypes {
+module.exports = class OnlyDownloadSpecificTypes {
   name = 'OnlyDownloadSpecificTypes'
   noCheerio = true
 
@@ -51,3 +51,4 @@ export default class OnlyDownloadSpecificTypes {
     })
   }
 }
+module.exports.UninterestingError = UninterestingError

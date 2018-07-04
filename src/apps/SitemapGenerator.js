@@ -1,8 +1,8 @@
-import { URL } from 'url'
-import dataExtractor from '../utils/dataExtractor'
-import linkExtractor from '../utils/linkExtractor'
+const URL = ('url').URL
+const dataExtractor = require('../utils/dataExtractor')
+const linkExtractor = require('../utils/linkExtractor')
 
-export default class SitemapGenerator {
+module.exports = class SitemapGenerator {
   name = 'SitemapGenerator'
   noCheerio = true
 

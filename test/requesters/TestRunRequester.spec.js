@@ -1,8 +1,10 @@
 /* eslint-env jest */
-import fs from 'fs'
-import path from 'path'
-import request from 'request'
-import TestRunRequester from '../../src/requesters/TestRunRequester'
+const fs = require('fs')
+const path = require('path')
+const request = require('request')
+const {
+  TestRunRequester
+} = require('../../')
 
 const SNAPSHOT_DIR = path.join(__dirname, '../snapshots/')
 let mockResponse

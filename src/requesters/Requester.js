@@ -1,6 +1,6 @@
-import request from 'request'
+const request = require('request')
 
-export default class Requester {
+module.exports = class Requester {
   request (requestOptions) {
     return new Promise(function (resolve, reject) {
       request(requestOptions, (err, response) => {

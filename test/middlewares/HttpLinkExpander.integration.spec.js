@@ -1,6 +1,8 @@
 /* eslint-env jest */
-import Crawler from '../../src/Crawler'
-import HttpLinkExpander from '../../src/middlewares/HttpLinkExpander'
+const {
+  Crawler,
+  HttpLinkExpander
+} = require('../../')
 
 let mockRequest = jest.fn()
 jest.mock('request', () => (...args) => mockRequest.apply(null, args))

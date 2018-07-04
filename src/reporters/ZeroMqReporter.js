@@ -1,9 +1,9 @@
-import zeromq from 'zeromq'
+const zeromq = require('zeromq')
 
 const DEFAULT_URL = 'tcp://127.0.0.1:3000'
 const DEFAULT_CHANNEL = 'plugnsearch-zero'
 
-export default class ZeroMqReporter {
+module.exports = class ZeroMqReporter {
   constructor ({ url, channel }) {
     this.channel = channel || DEFAULT_CHANNEL
     this.socket = zeromq.socket('pub')

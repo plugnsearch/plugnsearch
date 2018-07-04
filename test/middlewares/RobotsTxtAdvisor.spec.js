@@ -1,7 +1,9 @@
 /* eslint-env jest */
-import Crawler from '../../src/Crawler'
-import URL from '../../src/URL'
-import RobotsTxtAdvisor from '../../src/middlewares/RobotsTxtAdvisor'
+const {
+  Crawler,
+  URL,
+  RobotsTxtAdvisor
+} = require('../../')
 
 let mockRequest = jest.fn()
 jest.mock('request', () => (...args) => mockRequest.apply(null, args))

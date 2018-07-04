@@ -1,4 +1,4 @@
-import util from 'util'
+const util = require('util')
 
 const sleep = util.promisify(setTimeout)
 
@@ -7,7 +7,7 @@ const sleep = util.promisify(setTimeout)
  * the send out requests to a maximum of one request per given time.
  * is defined through the Crawler `throttle` option
  */
-export default class ThrottleRequests {
+module.exports = class ThrottleRequests {
   name = 'ThrottleRequests'
   noCheerio = true
 

@@ -1,6 +1,6 @@
-import cheerio from 'cheerio'
+const cheerio = require('cheerio')
 
-export default (html, basePath = null) => {
+module.exports = function dataExtractor (html, basePath = null) {
   const $ = cheerio.load(html)
   return Promise.resolve({
     title: $('title').text(),

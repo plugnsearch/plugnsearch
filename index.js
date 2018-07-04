@@ -1,26 +1,28 @@
-export default from './src/Crawler'
+module.exports = {
+  Crawler: require('./src/Crawler'),
 
-export Blacklist from './src/middlewares/Blacklist'
-export HttpLinkExpander from './src/middlewares/HttpLinkExpander'
-export OnlyDownloadSpecificTypes from './src/middlewares/OnlyDownloadSpecificTypes'
-export RobotsTxtAdvisor from './src/middlewares/RobotsTxtAdvisor'
-export RotateUserAgent from './src/middlewares/RotateUserAgent'
-export ThrottleRequests from './src/middlewares/ThrottleRequests'
+  Blacklist: require('./src/middlewares/Blacklist'),
+  HttpLinkExpander: require('./src/middlewares/HttpLinkExpander'),
+  OnlyDownloadSpecificTypes: require('./src/middlewares/OnlyDownloadSpecificTypes'),
+  RobotsTxtAdvisor: require('./src/middlewares/RobotsTxtAdvisor'),
+  RotateUserAgent: require('./src/middlewares/RotateUserAgent'),
+  ThrottleRequests: require('./src/middlewares/ThrottleRequests'),
 
-export JSONReporter from './src/reporters/JSONReporter'
-export JSONStreamReporter from './src/reporters/JSONStreamReporter'
-export HttpPostReporter from './src/reporters/HttpPostReporter'
-export ZeroMqReporter from './src/reporters/ZeroMqReporter'
+  JSONReporter: require('./src/reporters/JSONReporter'),
+  JSONStreamReporter: require('./src/reporters/JSONStreamReporter'),
+  HttpPostReporter: require('./src/reporters/HttpPostReporter'),
+  ZeroMqReporter: require('./src/reporters/ZeroMqReporter'),
 
-export checkContentType from './src/utils/checkContentType'
-export dataExtractor from './src/utils/dataExtractor'
-export linkExtractor from './src/utils/linkExtractor'
+  checkContentType: require('./src/utils/checkContentType'),
+  dataExtractor: require('./src/utils/dataExtractor'),
+  linkExtractor: require('./src/utils/linkExtractor'),
 
-export SimpleURLQueue from './src/queues/SimpleURLQueue'
-export RedisURLQueue from './src/queues/RedisURLQueue'
-export NoQueue from './src/queues/NoQueue'
+  SimpleURLQueue: require('./src/queues/SimpleURLQueue'),
+  RedisURLQueue: require('./src/queues/RedisURLQueue'),
+  NoQueue: require('./src/queues/NoQueue'),
 
-export Requester from './src/requesters/Requester'
-export TestRunRequester from './src/requesters/TestRunRequester'
+  Requester: require('./src/requesters/Requester'),
+  TestRunRequester: require('./src/requesters/TestRunRequester'),
 
-export URL from './src/URL'
+  URL: require('./src/URL')
+}

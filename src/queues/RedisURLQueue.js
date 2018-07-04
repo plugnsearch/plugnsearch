@@ -1,13 +1,13 @@
-import { promisify } from 'util'
-import redis from 'redis'
-import isArray from 'lodash/isArray'
-import partition from 'lodash/partition'
-import uniqBy from 'lodash/uniqBy'
+const { promisify } = require('util')
+const redis = require('redis')
+const isArray = require('lodash/isArray')
+const partition = require('lodash/partition')
+const uniqBy = require('lodash/uniqBy')
 
-import URL from '../URL'
-import SimpleURLQueue from './SimpleURLQueue'
+const URL = require('../URL')
+const SimpleURLQueue = require('./SimpleURLQueue')
 
-export default class RedisURLQueue extends SimpleURLQueue {
+module.exports = class RedisURLQueue extends SimpleURLQueue {
   urlsDone = []
   urlsTodo = []
 

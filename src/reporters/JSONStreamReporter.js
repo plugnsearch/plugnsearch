@@ -1,8 +1,8 @@
-import fs from 'fs'
+const fs = require('fs')
 
 const JSON_REGEX = /\.json$/
 
-export default class JSONStreamReporter {
+module.exports = class JSONStreamReporter {
   constructor ({ filename, fileLimitSize = null }) {
     this.filename = JSON_REGEX.test(filename) ? filename : `${filename}.json`
     this.fileLimitSize = fileLimitSize

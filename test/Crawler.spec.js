@@ -1,7 +1,9 @@
 /* eslint-env jest */
-import sinon from 'sinon'
-import Crawler from '../src/Crawler'
-import Reporter from '../src/reporters/JSONReporter'
+const sinon = require('sinon')
+const {
+  Crawler,
+  JSONReporter
+} = require('../')
 
 describe('Crawler', () => {
   let crawler
@@ -32,7 +34,7 @@ describe('Crawler', () => {
     it('emits finish directly if called with empty seed', done => {
       crawler
         .on('finish', reporter => {
-          expect(reporter).toEqual(expect.any(Reporter))
+          expect(reporter).toEqual(expect.any(JSONReporter))
           done()
         })
         .seed([])
@@ -41,7 +43,7 @@ describe('Crawler', () => {
 
     it('crawler start returns a promise that reolves when finish is called', async () => {
       const reporter = await crawler.seed([]).then(() => crawler.start())
-      expect(reporter).toEqual(expect.any(Reporter))
+      expect(reporter).toEqual(expect.any(JSONReporter))
     })
 
     it('puts in the right default userAgent', done => {
@@ -69,7 +71,7 @@ describe('Crawler', () => {
     it('passes the crawler itself as param', done => {
       crawler
         .on('finish', reporter => {
-          expect(reporter).toEqual(expect.any(Reporter))
+          expect(reporter).toEqual(expect.any(JSONReporter))
           done()
         })
         .seed([])

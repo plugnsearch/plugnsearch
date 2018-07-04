@@ -3,7 +3,7 @@
  * This middleware simply cycles through a list of provided user agents. The list
  * of agents is defined through the Crawler `userAgents` option
  */
-export default class RotateUserAgent {
+module.exports = class RotateUserAgent {
   name = 'RotateUserAgent'
   noCheerio = true
 

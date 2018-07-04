@@ -1,6 +1,6 @@
-import { URL } from 'url'
+const URL = require('url').URL
 
-export default (urls) => {
+module.exports = function linkListToDomains (urls) {
   return urls.reduce((result, url) => {
     const host = (new URL(url)).host
     if (!result[host]) result[host] = []

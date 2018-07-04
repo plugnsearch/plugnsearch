@@ -1,8 +1,8 @@
-import fs from 'fs'
-import path from 'path'
-import request from 'request'
+const fs = require('fs')
+const path = require('path')
+const request = require('request')
 
-export default class TestRunRequester {
+module.exports = class TestRunRequester {
   constructor ({ snapshotDir }) {
     this.snapshotDir = snapshotDir
   }

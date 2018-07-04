@@ -1,7 +1,7 @@
-import linkscrape from 'linkscrape'
-import uniqBy from 'lodash/uniqBy'
+const linkscrape = require('linkscrape')
+const uniqBy = require('lodash/uniqBy')
 
-export default (html, basePath = null) => {
+module.exports = function linkExtractor (html, basePath = null) {
   return new Promise(function (resolve) {
     linkscrape(basePath, html, (links, $) => {
       const urls = links.map(l => l.link)

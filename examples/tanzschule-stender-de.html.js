@@ -1,4 +1,4 @@
-export default  `
+module.exports = `
 <!DOCTYPE html>
 <!--[if IE 7]>
 <html class="ie ie7" lang="de-DE" prefix="og: http://ogp.me/ns#">

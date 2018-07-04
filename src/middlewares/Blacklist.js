@@ -4,7 +4,7 @@ class UninterrstingError {}
  * This middleware allows to define a blacklist for domains and urls.
  * It prohibits crawling of any URL that matches its items.
  */
-export default class Blacklist {
+module.exports = class Blacklist {
   name = 'DomainBlacklist'
   noCheerio = true
 
@@ -22,3 +22,5 @@ export default class Blacklist {
     }
   }
 }
+
+module.exports.UninterrstingError = UninterrstingError

@@ -1,7 +1,9 @@
 /* eslint-env jest */
-import Crawler from '../../src/Crawler'
-import URL from '../../src/URL'
-import RotateUserAgent from '../../src/middlewares/RotateUserAgent'
+const {
+  Crawler,
+  URL,
+  RotateUserAgent
+} = require('../../')
 
 let mockRequest = jest.fn()
 jest.mock('request', () => (...args) => mockRequest.apply(null, args))

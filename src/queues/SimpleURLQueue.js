@@ -1,9 +1,9 @@
-import normalizeUrl from 'normalize-url'
-import isArray from 'lodash/isArray'
+const normalizeUrl = require('normalize-url')
+const isArray = require('lodash/isArray')
 
-import URL from '../URL'
+const URL = require('../URL')
 
-export default class SimpleURLQueue {
+module.exports = class SimpleURLQueue {
   urlsDone = []
   urlsTodo = []
 

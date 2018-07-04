@@ -1,6 +1,8 @@
 /* eslint-env jest */
-import URL from '../../src/URL'
-import SimpleURLQueue from '../../src/queues/SimpleURLQueue'
+const {
+  URL,
+  SimpleURLQueue
+} = require('../../')
 
 describe('SimpleURLQueue', () => {
   let queue

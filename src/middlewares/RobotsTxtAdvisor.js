@@ -1,6 +1,6 @@
-import { URL } from 'url'
-import request from 'request'
-import robotsParser from 'robots-parser'
+const URL = require('url').URL
+const request = require('request')
+const robotsParser = require('robots-parser')
 
 class UninterestingError {}
 
@@ -8,7 +8,7 @@ class UninterestingError {}
  * Reads the robots.txt file from a domain and heeds the crawling restrictions from
  * that file.
  */
-export default class RobotsTxtAdvisor {
+module.exports = class RobotsTxtAdvisor {
   name = 'RobotsTxtAdvisor'
   noCheerio = true
 
@@ -56,3 +56,5 @@ export default class RobotsTxtAdvisor {
     })
   }
 }
+
+module.exports.UninterestingError = UninterestingError

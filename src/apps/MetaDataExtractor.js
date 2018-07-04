@@ -1,6 +1,6 @@
-import dataExtractor from '../utils/dataExtractor'
+const dataExtractor = require('../utils/dataExtractor')
 
-export default class MetaDataExtractor {
+module.exports = class MetaDataExtractor {
   name = 'MetaDataExtractor'
   noCheerio = true
 

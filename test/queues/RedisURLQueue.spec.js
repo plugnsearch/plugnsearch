@@ -1,7 +1,9 @@
 /* eslint-env jest */
-import redis from 'redis'
-import URL from '../../src/URL'
-import RedisURLQueue from '../../src/queues/RedisURLQueue'
+const redis = require('redis')
+const {
+  URL,
+  RedisURLQueue
+} = require('../../')
 
 let mockSet = {}
 let mockQueue = []

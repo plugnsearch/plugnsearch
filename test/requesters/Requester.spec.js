@@ -1,6 +1,8 @@
 /* eslint-env jest */
-import request from 'request'
-import Requester from '../../src/requesters/Requester'
+const request = require('request')
+const {
+  Requester
+} = require('../../')
 
 jest.mock('request', () => jest.fn())
 

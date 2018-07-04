@@ -1,11 +1,13 @@
 /* eslint-env jest */
-import Reporter from '../../src/reporters/JSONReporter'
+const {
+  JSONReporter
+} = require('../../')
 
-describe('Reporter', () => {
+describe('JSONReporter', () => {
   let reporter
 
   beforeEach(() => {
-    reporter = new Reporter()
+    reporter = new JSONReporter()
   })
 
   it('can report different items, merges them and return them as JSON', () => {

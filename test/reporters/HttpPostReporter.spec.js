@@ -1,6 +1,8 @@
 /* eslint-env jest */
-import HttpPostReporter from '../../src/reporters/HttpPostReporter'
-import request from 'request'
+const request = require('request')
+const {
+  HttpPostReporter
+} = require('../../')
 
 jest.mock('request', () => ({
   post: jest.fn((options, data, cb) => {

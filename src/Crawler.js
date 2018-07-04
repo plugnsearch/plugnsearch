@@ -1,12 +1,12 @@
-import EventEmitter from 'events'
-import StackTraceParser from 'stacktrace-parser'
-import cheerio from 'cheerio'
-import isArray from 'lodash/isArray'
+const EventEmitter = require('events')
+const StackTraceParser = require('stacktrace-parser')
+const cheerio = require('cheerio')
+const isArray = require('lodash/isArray')
 
-import checkContentType from './utils/checkContentType'
-import SimpleURLQueue from './queues/SimpleURLQueue'
-import JSONReporter from './reporters/JSONReporter'
-import Requester from './requesters/Requester'
+const checkContentType = require('./utils/checkContentType')
+const SimpleURLQueue = require('./queues/SimpleURLQueue')
+const JSONReporter = require('./reporters/JSONReporter')
+const Requester = require('./requesters/Requester')
 
 const callAppPreRequestsInSeries = (series, preRequestParams, reportTime) => Promise.all([series.reduce(
   (memo, app) => memo.then(() => {
@@ -24,7 +24,7 @@ const callAppPreRequestsInSeries = (series, preRequestParams, reportTime) => Pro
   Promise.resolve([])
 )])
 
-export default class Crawler extends EventEmitter {
+module.exports = class Crawler extends EventEmitter {
   constructor ({
     /**
      * Could be a list of userAgents, that the agents will be rotated

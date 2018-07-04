@@ -1,6 +1,8 @@
 /* eslint-env jest */
-import examplePage from '../../examples/tanzschule-stender-de.html.js'
-import dataExtractor from '../../src/utils/dataExtractor'
+const examplePage = require('../../examples/tanzschule-stender-de.html.js')
+const {
+  dataExtractor
+} = require('../../')
 
 describe('utils/dataExtractor', () => {
   let subject

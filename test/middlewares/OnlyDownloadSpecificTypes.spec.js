@@ -1,7 +1,10 @@
 /* eslint-env jest */
-import Crawler from '../../src/Crawler'
-import URL from '../../src/URL'
-import OnlyDownloadSpecificTypes, { UninterestingError } from '../../src/middlewares/OnlyDownloadSpecificTypes'
+const {
+  Crawler,
+  URL,
+  OnlyDownloadSpecificTypes
+} = require('../../')
+const { UninterestingError } = require('../../src/middlewares/OnlyDownloadSpecificTypes')
 
 let mockRequest = jest.fn()
 jest.mock('request', () => (...args) => mockRequest.apply(null, args))

@@ -1,4 +1,4 @@
-import isArray from 'lodash/isArray'
+const isArray = require('lodash/isArray')
 
 const checkContentType = (validContentType, contentType) => {
   if (!validContentType) return true
@@ -12,4 +12,4 @@ const checkContentType = (validContentType, contentType) => {
   return false
 }
 
-export default checkContentType
+module.exports = checkContentType

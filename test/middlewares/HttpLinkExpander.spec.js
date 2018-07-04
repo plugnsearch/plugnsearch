@@ -1,6 +1,8 @@
 /* eslint-env jest */
-import HttpLinkExpander from '../../src/middlewares/HttpLinkExpander'
-import linkExtractor from '../../src/utils/linkExtractor'
+const {
+  HttpLinkExpander,
+  linkExtractor
+} = require('../../')
 
 let mockRequest = jest.fn()
 jest.mock('request', () => (...args) => mockRequest.apply(null, args))

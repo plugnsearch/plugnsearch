@@ -1,12 +1,9 @@
 /* eslint-env jest */
-import redis from 'redis'
-import URL from '../../src/URL'
-import Crawler from '../../src/Crawler'
-import RedisURLQueue from '../../src/queues/RedisURLQueue'
-
-let mockSet = {}
-let mockQueue = []
-let mockErrors = {}
+const redis = require('redis')
+const {
+  Crawler,
+  RedisURLQueue
+} = require('../../')
 
 describe('RedisURLQueue integration spec', () => {
   const redisKey = 'test.redis'
@@ -16,9 +13,6 @@ describe('RedisURLQueue integration spec', () => {
   let redisCli
 
   beforeEach(() => {
-    mockSet = {}
-    mockQueue = []
-    mockErrors = {}
     redisCli = redis.createClient(redisOptions)
   })
 
