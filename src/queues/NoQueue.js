@@ -7,9 +7,8 @@ const URL = require('../URL')
  * items then originally are in
  */
 module.exports = class SimpleURLQueue {
-  urlsTodo = []
-
   constructor ({ seedUrls = [] } = {}) {
+    this.urlsTodo = []
     this._initQueue(seedUrls)
   }
 

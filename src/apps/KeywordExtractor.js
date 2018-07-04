@@ -1,10 +1,10 @@
 const Occurences = require('occurences')
 
 module.exports = class KeywordExtractor {
-  name = 'KeywordExtractor'
-  noCheerio = true
-
   constructor ({ keywords }) {
+    this.name = 'KeywordExtractor'
+    this.noCheerio = true
+
     this.keywords = keywords
   }
 

@@ -4,10 +4,10 @@
  * of agents is defined through the Crawler `userAgents` option
  */
 module.exports = class RotateUserAgent {
-  name = 'RotateUserAgent'
-  noCheerio = true
-
   constructor (options) {
+    this.name = 'RotateUserAgent'
+    this.noCheerio = true
+
     this.appOptions = options
     this.index = 0
   }

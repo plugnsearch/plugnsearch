@@ -3,8 +3,10 @@ const dataExtractor = require('../utils/dataExtractor')
 const linkExtractor = require('../utils/linkExtractor')
 
 module.exports = class SitemapGenerator {
-  name = 'SitemapGenerator'
-  noCheerio = true
+  constructor () {
+    this.name = 'SitemapGenerator'
+    this.noCheerio = true
+  }
 
   process ({ body, url, queueUrls, report }) {
     return dataExtractor(body)

@@ -11,10 +11,10 @@ class UninterestingError {}
  * It needs the `onlySpecificContentTypes` config in app to be set
  */
 module.exports = class OnlyDownloadSpecificTypes {
-  name = 'OnlyDownloadSpecificTypes'
-  noCheerio = true
-
   constructor ({ onlySpecificContentTypes = null } = {}) {
+    this.name = 'OnlyDownloadSpecificTypes'
+    this.noCheerio = true
+
     this.onlySpecificContentTypes = onlySpecificContentTypes
   }
 

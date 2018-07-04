@@ -7,14 +7,14 @@ const linkExtractor = require('../utils/linkExtractor')
  * mailto- or tel-links.
  */
 module.exports = class HTTPLinkExpander {
-  name = 'HTTPLinkExpander'
-  noCheerio = true
-
   constructor ({
     maxDepth = 0,
     maxDepthLogging = false,
     urlFilter = null
   } = {}) {
+    this.name = 'HTTPLinkExpander'
+    this.noCheerio = true
+
     this.maxDepth = maxDepth
     this.maxDepthLogging = maxDepthLogging
     this.urlFilter = urlFilter

@@ -1,8 +1,10 @@
 const dataExtractor = require('../utils/dataExtractor')
 
 module.exports = class MetaDataExtractor {
-  name = 'MetaDataExtractor'
-  noCheerio = true
+  constructor () {
+    this.name = 'MetaDataExtractor'
+    this.noCheerio = true
+  }
 
   process ({ body, report }) {
     return dataExtractor(body)

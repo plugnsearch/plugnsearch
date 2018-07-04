@@ -8,10 +8,10 @@ const sleep = util.promisify(setTimeout)
  * is defined through the Crawler `throttle` option
  */
 module.exports = class ThrottleRequests {
-  name = 'ThrottleRequests'
-  noCheerio = true
-
   constructor (options) {
+    this.name = 'ThrottleRequests'
+    this.noCheerio = true
+
     this.appOptions = options
     this.nextRequest = 0
   }

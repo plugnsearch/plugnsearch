@@ -4,10 +4,10 @@ const isArray = require('lodash/isArray')
 const URL = require('../URL')
 
 module.exports = class SimpleURLQueue {
-  urlsDone = []
-  urlsTodo = []
-
   constructor ({ skipDuplicates = true } = {}) {
+    this.urlsDone = []
+    this.urlsTodo = []
+
     this.skipDuplicates = skipDuplicates
   }
 

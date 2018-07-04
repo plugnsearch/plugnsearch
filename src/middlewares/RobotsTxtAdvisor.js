@@ -9,10 +9,10 @@ class UninterestingError {}
  * that file.
  */
 module.exports = class RobotsTxtAdvisor {
-  name = 'RobotsTxtAdvisor'
-  noCheerio = true
-
   constructor ({ robotsTxtLogging } = {}) {
+    this.name = 'RobotsTxtAdvisor'
+    this.noCheerio = true
+
     this.logging = robotsTxtLogging
     this.memory = {}
   }

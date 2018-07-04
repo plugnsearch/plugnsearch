@@ -8,9 +8,6 @@ const URL = require('../URL')
 const SimpleURLQueue = require('./SimpleURLQueue')
 
 module.exports = class RedisURLQueue extends SimpleURLQueue {
-  urlsDone = []
-  urlsTodo = []
-
   constructor ({ redisKey = 'urlQueue', redisOptions = {}, ...options } = {}) {
     super(options)
     this.client = redis.createClient(redisOptions)

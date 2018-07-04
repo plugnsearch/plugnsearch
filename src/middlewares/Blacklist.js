@@ -5,11 +5,10 @@ class UninterrstingError {}
  * It prohibits crawling of any URL that matches its items.
  */
 module.exports = class Blacklist {
-  name = 'DomainBlacklist'
-  noCheerio = true
-
   constructor (options) {
-    // this.blacklist = options
+    this.name = 'DomainBlacklist'
+    this.noCheerio = true
+
     this.blacklist = (options.blacklist || [])
       .map(item => typeof item === 'string' ? new RegExp(item.replace('.', '\\.')) : item)
   }
