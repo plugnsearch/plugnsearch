@@ -26,5 +26,7 @@ module.exports = {
   Requester: require('./src/requesters/Requester'),
   TestRunRequester: require('./src/requesters/TestRunRequester'),
 
-  URL: require('./src/URL')
+  URL: require('./src/URL'),
+  UninterestingError: require('./src/UninterestingError')
+
 }

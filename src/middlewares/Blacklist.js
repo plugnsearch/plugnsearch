@@ -1,4 +1,4 @@
-class UninterrstingError {}
+const UninterestingError = require('../UninterestingError')
 
 /**
  * This middleware allows to define a blacklist for domains and urls.
@@ -14,11 +14,9 @@ module.exports = class Blacklist {
 
   preRequest (url) {
     if (this.blacklist.find(regex => regex.test(url.href))) {
-      return Promise.reject(new UninterrstingError())
+      return Promise.reject(new UninterestingError())
     } else {
       return Promise.resolve()
     }
   }
 }
-
-module.exports.UninterrstingError = UninterrstingError

@@ -2,9 +2,9 @@
 const {
   Crawler,
   URL,
-  OnlyDownloadSpecificTypes
+  OnlyDownloadSpecificTypes,
+  UninterestingError
 } = require('../../')
-const { UninterestingError } = require('../../src/middlewares/OnlyDownloadSpecificTypes')
 
 let mockRequest = jest.fn()
 jest.mock('request', () => (...args) => mockRequest.apply(null, args))

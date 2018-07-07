@@ -2,7 +2,7 @@ const URL = require('url').URL
 const request = require('request')
 const robotsParser = require('robots-parser')
 
-class UninterestingError {}
+const UninterestingError = require('../UninterestingError')
 
 /**
  * Reads the robots.txt file from a domain and heeds the crawling restrictions from

@@ -1,8 +1,7 @@
 const request = require('request')
 
+const UninterestingError = require('../UninterestingError')
 const checkContentType = require('../utils/checkContentType')
-
-class UninterestingError {}
 
 /**
  * This app sends out head requests before real requests are going out and checks if
@@ -50,4 +49,3 @@ module.exports = class OnlyDownloadSpecificTypes {
     })
   }
 }
-module.exports.UninterestingError = UninterestingError

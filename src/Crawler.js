@@ -6,6 +6,7 @@ const checkContentType = require('./utils/checkContentType')
 const SimpleURLQueue = require('./queues/SimpleURLQueue')
 const JSONReporter = require('./reporters/JSONReporter')
 const Requester = require('./requesters/Requester')
+const UninterestingError = require('./UninterestingError')
 
 const callAppPreRequestsInSeries = (series, preRequestParams, reportTime) => Promise.all([series.reduce(
   (memo, app) => memo.then(() => {
@@ -120,7 +121,7 @@ module.exports = class Crawler extends EventEmitter {
       // if prerequests errors out, note that down and go on
       .catch(err => {
         // If error has no name it probably is totally uninteresting to log
-        if (err && err.name) {
+        if (!(err instanceof UninterestingError)) {
           this.reporter.report(url, 'error', {
             type: 'AppError',
             message: `preRequest method failed because of ${err.toString()}`,
