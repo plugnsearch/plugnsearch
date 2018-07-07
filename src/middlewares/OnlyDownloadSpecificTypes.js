@@ -13,7 +13,6 @@ class UninterestingError {}
 module.exports = class OnlyDownloadSpecificTypes {
   constructor ({ onlySpecificContentTypes = null } = {}) {
     this.name = 'OnlyDownloadSpecificTypes'
-    this.noCheerio = true
 
     this.onlySpecificContentTypes = onlySpecificContentTypes
   }

@@ -7,7 +7,6 @@ class UninterrstingError {}
 module.exports = class Blacklist {
   constructor (options) {
     this.name = 'DomainBlacklist'
-    this.noCheerio = true
 
     this.blacklist = (options.blacklist || [])
       .map(item => typeof item === 'string' ? new RegExp(item.replace('.', '\\.')) : item)

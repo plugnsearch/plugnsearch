@@ -13,7 +13,6 @@ module.exports = class HTTPLinkExpander {
     urlFilter = null
   } = {}) {
     this.name = 'HTTPLinkExpander'
-    this.noCheerio = true
 
     this.maxDepth = maxDepth
     this.maxDepthLogging = maxDepthLogging

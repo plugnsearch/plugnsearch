@@ -1,6 +1,5 @@
 const EventEmitter = require('events')
 const StackTraceParser = require('stacktrace-parser')
-const cheerio = require('cheerio')
 const isArray = require('lodash/isArray')
 
 const checkContentType = require('./utils/checkContentType')
@@ -89,6 +88,9 @@ module.exports = class Crawler extends EventEmitter {
     const appToAdd = typeof app === 'function'
       ? app(this.config)
       : app
+    if (appToAdd.dependencies) {
+      appToAdd.dependencies.forEach(depApp => this.addApp(depApp))
+    }
     this.apps.push(appToAdd)
     if (this.benchmarks) {
       this.benchmarks.push({
@@ -175,10 +177,10 @@ module.exports = class Crawler extends EventEmitter {
 
   // @private
   runApps (url, response) {
-    let $
     let reportCalled = false
     const queuePromises = []
-    const params = {
+    let contextAddition = {}
+    const context = {
       report: (type, data) => {
         this.reporter.report(url.toString(), type, data)
         reportCalled = true
@@ -191,19 +193,19 @@ module.exports = class Crawler extends EventEmitter {
       queueUrls: (urls) => {
         queuePromises.push(this.queue.queue(urls))
       },
-      response
+      response,
+      updateContext: (ctx) => {
+        contextAddition = { ...contextAddition, ...ctx }
+      }
     }
     return Promise.all(this.doBenchmarking('processTimes', reportTime => (
       this.apps.map(app => {
-        if (app.process && checkContentType(app.contentType, params.contentType)) {
-          if (!app.noCheerio && !$) {
-            $ = cheerio.load(response.body)
-          }
+        if (app.process && checkContentType(app.contentType, context.contentType)) {
           reportTime && reportTime.start()
           try {
-            const result = app.process(app.noCheerio ? params : {
-              ...params,
-              $
+            const result = app.process({
+              ...context,
+              ...contextAddition
             })
             if (result && result.constructor === Promise) {
               reportTime && reportTime.end()

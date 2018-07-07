@@ -6,7 +6,6 @@
 module.exports = class RotateUserAgent {
   constructor (options) {
     this.name = 'RotateUserAgent'
-    this.noCheerio = true
 
     this.appOptions = options
     this.index = 0

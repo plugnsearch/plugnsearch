@@ -1,6 +1,8 @@
 module.exports = {
   Crawler: require('./src/Crawler'),
 
+  CheerioLoader: require('./src/loaders/CheerioLoader'),
+
   Blacklist: require('./src/middlewares/Blacklist'),
   HttpLinkExpander: require('./src/middlewares/HttpLinkExpander'),
   OnlyDownloadSpecificTypes: require('./src/middlewares/OnlyDownloadSpecificTypes'),

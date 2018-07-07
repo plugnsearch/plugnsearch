@@ -1,6 +1,7 @@
 /* eslint-env jest */
 const sinon = require('sinon')
 const {
+  CheerioLoader,
   Crawler,
   JSONReporter
 } = require('../')
@@ -166,6 +167,28 @@ describe('Crawler', () => {
         .then(() => crawler.start())
     })
 
+    it('loads app dependencies before the real app which can change the context', async () => {
+      let callCount = 0
+      const preApp = {
+        process: ({ updateContext }) => {
+          updateContext({ foo: 'bar' })
+        }
+      }
+
+      crawler.addApp({
+        dependencies: [preApp],
+        process: ({ foo }) => {
+          expect(foo).toEqual('bar')
+          ++callCount
+        }
+      })
+
+      await crawler
+        .seed(TEST_URL)
+        .then(() => crawler.start())
+      expect(callCount).toEqual(1)
+    })
+
     it('passes a queueUrls method that can be used to path further links', async () => {
       let callCount = 0
       crawler.addApp({
@@ -188,6 +211,7 @@ describe('Crawler', () => {
     it('also passes jQuery like interface (using cheerio) to process method', done => {
       exampleHTML = '<html><body><h1>Hello World!</h1></body></html>'
       crawler.addApp({
+        dependencies: [CheerioLoader],
         process: ({ $ }) => {
           expect($('h1').html()).toEqual('Hello World!')
         }
@@ -471,7 +495,7 @@ describe('Crawler', () => {
     })
 
     describe('having multiple apps', () => {
-      it('only provide jQuery interface to apps who wants it', () => {
+      it('dependencies are loaded directly of apps defining them', () => {
         exampleHTML = '<html><body><h1>Hello World!</h1></body></html>'
         crawler.addApp({
           contentType: 'html',
@@ -482,6 +506,7 @@ describe('Crawler', () => {
           }
         })
         crawler.addApp({
+          dependencies: [CheerioLoader],
           process: ({ $ }) => {
             expect($('h1').text()).toEqual('Hello World!')
           },

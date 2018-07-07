@@ -11,7 +11,6 @@ class UninterestingError {}
 module.exports = class RobotsTxtAdvisor {
   constructor ({ robotsTxtLogging } = {}) {
     this.name = 'RobotsTxtAdvisor'
-    this.noCheerio = true
 
     this.logging = robotsTxtLogging
     this.memory = {}
