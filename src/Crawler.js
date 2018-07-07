@@ -52,10 +52,6 @@ module.exports = class Crawler extends EventEmitter {
      */
     requester = new Requester(),
     /**
-     * Use this directory to put in snapshot files for test drive
-     */
-    snapshotDir = 'snapshots/',
-    /**
      * If this is true, the Crawler keeps track of run times of all Apps, and will create a report at the end
      */
     benchmark = false,
@@ -71,7 +67,6 @@ module.exports = class Crawler extends EventEmitter {
     this.reporter = reporter
     this.logger = logger
     this.requester = requester
-    this.snapshotDir = snapshotDir
     this.benchmarks = benchmark ? [] : null
 
     this.apps = []
