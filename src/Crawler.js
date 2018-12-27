@@ -98,11 +98,17 @@ module.exports = class Crawler extends EventEmitter {
     return this
   }
 
+  /**
+   * Add URLs as seed where the crawler should start crawling.
+   */
   async seed (urls) {
     await this.queue.queue(urls)
     return this
   }
 
+  /**
+   * Call this to star crawling.
+   */
   start () {
     this.tick()
     return new Promise((resolve) => {
@@ -110,6 +116,7 @@ module.exports = class Crawler extends EventEmitter {
     })
   }
 
+  // @private
   async tick () {
     const url = await this.queue.getNextUrl()
     if (!url) {
@@ -252,14 +259,6 @@ module.exports = class Crawler extends EventEmitter {
       return nextAgent
     }
     return this.userAgent
-  }
-
-  report () {
-    return this.reporter.toJson()
-  }
-
-  storeResult (url, data) {
-    this.crawledLinks[url] = data
   }
 
   // @private
