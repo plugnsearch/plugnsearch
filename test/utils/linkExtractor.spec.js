@@ -22,6 +22,11 @@ describe('utils/linkExtractor', () => {
     expect(urls.find(url => url.indexOf('#content') !== -1)).toBeFalsy()
   })
 
+  it('finds relative urls as well', () => {
+    const urls = subject.map(i => i.url)
+    expect(urls.find(url => url.indexOf('http://www.tanzschule-stender.de/willkommen/') !== -1)).toBeTruthy()
+  })
+
   it('reduces duplicates to a number', () => {
     const multipleOccuringUrl = 'https://www.tanzschule-stender.de/events/event/tanzparty/'
     const urls = subject.map(i => i.url)

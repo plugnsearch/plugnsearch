@@ -180,7 +180,7 @@ s" id="twentythirteen-header-css">
 20:39+00:00">10. März 2014</time></span>					</div><!-- .entry-meta -->
 
 				<h2 class="entry-title">
-			<a href="https://www.tanzschule-stender.de/willkommen-auf-der-internetseite-der-tanzschule-heiko-stender-tanzen-lernen-freunde-finden/" rel="bookmark">Wir bewegen Hamburg!</a>
+			<a href="/willkommen/" rel="bookmark">Wir bewegen Hamburg!</a>
 		</h2>
 
 	</header><!-- .entry-header -->
