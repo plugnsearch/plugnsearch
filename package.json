@@ -1,5 +1,5 @@
 {
-  "name": "@plugnsearch/core",
+  "name": "plugnsearch-core",
   "version": "1.0.0",
   "description": "The only real plugable webspider / webcrawler to search the web for stuff you need.",
   "main": "index.js",
