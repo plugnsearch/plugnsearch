@@ -27,7 +27,7 @@
   "dependencies": {
     "cheerio": "^1.0.0-rc.10",
     "core-decorators": "^0.20.0",
-    "jsonld": "^0.4.12",
+    "jsonld": "^8.1.0",
     "linkscrape": "^1.0.0",
     "lodash": "^4.17.21",
     "normalize-url": "^2.0.1",
